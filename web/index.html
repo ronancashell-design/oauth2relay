@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-TBHH2VX7');</script>
+  <!-- End Google Tag Manager -->
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OAUTH2Relay – Open source OAuth 2.0 token relay for APIs</title>
+  <meta name="description" content="OAUTH2Relay is an open source (Apache-2.0) relay that obtains OAuth 2.0 access tokens, keeps them in memory only, renews them in the background and adds them to your API requests. Credentials come from environment variables or secrets managers.">
+  <link rel="canonical" href="https://oauth2relay.com/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0a7a5a">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="OAUTH2Relay">
+  <meta property="og:url" content="https://oauth2relay.com/">
+  <meta property="og:title" content="OAUTH2Relay – Secure OAuth2 tokens, never on disk">
+  <meta property="og:description" content="Open source OAuth 2.0 token relay. Tokens in memory only, background renewal, credentials from environment variables or secrets managers.">
+  <meta property="og:image" content="https://oauth2relay.com/og-image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="OAUTH2Relay: Secure OAuth2 tokens, never on disk. Request flow showing the token injected in memory and never stored on disk.">
+  <meta property="og:locale" content="en_US">
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="OAUTH2Relay – Secure OAuth2 tokens, never on disk">
+  <meta name="twitter:description" content="Open source OAuth 2.0 token relay. Tokens in memory only, background renewal, credentials from environment variables or secrets managers.">
+  <meta name="twitter:image" content="https://oauth2relay.com/og-image.jpg">
+  <meta name="twitter:image:alt" content="OAUTH2Relay: Secure OAuth2 tokens, never on disk.">
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://oauth2relay.com/#website",
+        "url": "https://oauth2relay.com/",
+        "name": "OAUTH2Relay"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "OAUTH2Relay",
+        "url": "https://oauth2relay.com/",
+        "image": "https://oauth2relay.com/og-image.jpg",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Linux, macOS, Windows",
+        "softwareVersion": "2.4.1",
+        "license": "https://www.apache.org/licenses/LICENSE-2.0",
+        "downloadUrl": "https://oauth2relay.com/#download",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "publisher": { "@type": "Organization", "name": "Fijomi Systems SL", "url": "https://fijomi.com" },
+        "description": "Open source relay that obtains OAuth 2.0 access tokens, keeps them in memory only, renews them in the background and adds them to API requests. Credentials come from environment variables or secrets managers."
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is OAUTH2Relay free?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. OAUTH2Relay is open source under the Apache License 2.0, so you can use it, change it and run it commercially at no cost. Commercial support and an enterprise edition are available from Fijomi Systems." }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I handle credentials in production?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Keep them out of the configuration file. Reference environment variables with ${env:NAME}, injected by Kubernetes Secrets, systemd or your container platform, or fetch them from AWS Secrets Manager, HashiCorp Vault or Azure Key Vault." }
+          },
+          {
+            "@type": "Question",
+            "name": "What happens if the process crashes?",
+            "acceptedAnswer": { "@type": "Answer", "text": "The tokens are lost with it, because they only ever exist in memory. When the relay starts again it logs in with the credentials from your environment or secrets manager and gets a new token." }
+          },
+          {
+            "@type": "Question",
+            "name": "Which identity providers does it work with?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Any OAuth 2.0 token endpoint that supports the client credentials, JWT bearer (RFC 7523) or password grant, plus custom login requests for providers with their own format." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Mona+Sans:wght@400..700&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <!-- Link to external CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBHH2VX7"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container d-flex align-items-center justify-content-between">
+      <a class="brand" href="#top">
+        <img src="favicon.png" alt="" width="28" height="28">
+        <span>OAUTH2Relay</span>
+      </a>
+      <nav class="site-nav d-none d-lg-flex" aria-label="Main">
+        <a href="#advantages">Advantages</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#use-cases">Use cases</a>
+        <a href="docs.html">Docs</a>
+        <a href="operations.html">Operations</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn-pill btn-pill-primary btn-pill-sm" href="#download">Download <i class="bi bi-download"></i></a>
+    </div>
+  </header>
+
+  <main id="top">
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="row align-items-center g-4 g-lg-5">
+        <div class="col-lg-7">
+          <p class="eyebrow">Open source OAuth 2.0 token relay</p>
+          <h1 class="display-title">Secure OAuth2 tokens,<br><em>never on disk.</em></h1>
+          <p class="lead-muted">OAUTH2Relay gets the access token, keeps it in memory, renews it before it expires and adds it to every request your services make. Credentials come from your environment or your secrets manager, never from code.</p>
+          <div class="d-flex flex-wrap gap-3 mt-4">
+            <a class="btn-pill btn-pill-primary" href="#download">Download v2.4.1 <i class="bi bi-download"></i></a>
+            <a class="btn-pill" href="docs.html">Read the docs <i class="bi bi-arrow-up-right"></i></a>
+          </div>
+          <p class="hero-meta"><i class="bi bi-check2"></i>Apache-2.0 <i class="bi bi-check2"></i>Linux, macOS, Windows <i class="bi bi-check2"></i>Single static binary</p>
+        </div>
+        <div class="col-lg-5">
+          <!-- Illustrative request flow -->
+          <div class="relay-card" aria-hidden="true">
+            <div class="relay-row">
+              <span class="relay-icon"><i class="bi bi-window"></i></span>
+              <div><small>Your service</small><code>GET /orders</code></div>
+              <span class="status status-ok">Sent</span>
+            </div>
+            <div class="relay-row relay-row-hub">
+              <span class="relay-icon relay-icon-hub"><img src="favicon.png" alt=""></span>
+              <div><small>OAUTH2Relay · in memory</small><code>Bearer ••••••••3f9a</code></div>
+              <span class="status status-ok">Injected</span>
+            </div>
+            <div class="relay-row">
+              <span class="relay-icon"><i class="bi bi-cloud"></i></span>
+              <div><small>Third-party API</small><code>200 OK</code></div>
+              <span class="status status-ok">Allowed</span>
+            </div>
+            <div class="relay-row relay-row-faded">
+              <span class="relay-icon"><i class="bi bi-hdd"></i></span>
+              <div><small>Disk / database</small><code>no tokens stored</code></div>
+              <span class="status status-off">Never</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What is OAUTH2Relay Section -->
+  <section id="what-is" class="section">
+    <div class="container">
+      <div class="row g-4 align-items-end mb-5">
+        <div class="col-lg-6" data-reveal>
+          <p class="eyebrow">What is OAUTH2Relay?</p>
+          <h2 class="section-title">A small relay.<br><em>Zero token storage.</em></h2>
+        </div>
+        <div class="col-lg-6" data-reveal>
+          <p class="lead-muted mb-0">
+            OAUTH2Relay sits between your services and an API that needs OAuth 2.0. It logs in to the identity provider, holds the access token in memory, and adds it to each request it relays. Your services call the relay with no token logic of their own. Tokens are never written to disk or a database, and the client secret or signing key comes from an environment variable or a secrets manager, so the configuration file holds no secrets.
+          </p>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-sm-6 col-lg-3" data-reveal>
+          <div class="tile">
+            <span class="tile-icon"><i class="bi bi-memory"></i></span>
+            <h3>Tokens in memory only</h3>
+            <p>Access and refresh tokens live in process memory and disappear when the relay stops.</p>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3" data-reveal data-reveal-delay="80">
+          <div class="tile">
+            <span class="tile-icon"><i class="bi bi-terminal"></i></span>
+            <h3>Credentials from your environment</h3>
+            <p><code>${env:NAME}</code> placeholders, or AWS Secrets Manager, HashiCorp Vault and Azure Key Vault.</p>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3" data-reveal data-reveal-delay="160">
+          <div class="tile">
+            <span class="tile-icon"><i class="bi bi-arrow-repeat"></i></span>
+            <h3>Renewed in the background</h3>
+            <p>The token is renewed at 80% of its lifetime, by refresh token or a new login, so requests never wait for it.</p>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3" data-reveal data-reveal-delay="240">
+          <div class="tile">
+            <span class="tile-icon"><i class="bi bi-speedometer2"></i></span>
+            <h3>Ready to operate</h3>
+            <p>Health checks, Prometheus metrics, structured JSON logs, TLS and graceful shutdown built in.</p>
+          </div>
+        </div>
+      </div>
+      <p class="ideal-for" data-reveal><strong>Built for</strong> server-to-server integrations: backend services, batch jobs and platforms that call third-party or internal APIs protected by OAuth 2.0.</p>
+    </div>
+  </section>
+
+  <!-- Advantages of OAUTH2Relay Section -->
+  <section id="advantages" class="section section-tint">
+    <div class="container">
+      <div class="section-head text-center" data-reveal>
+        <p class="eyebrow">Advantages</p>
+        <h2 class="section-title">Built for security.<br><em>Simple to run.</em></h2>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4" data-reveal>
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-shield-lock"></i></span>
+            <h3>Secure by default</h3>
+            <ul class="check-list">
+              <li><strong>No secrets in config:</strong> credentials come from <code>${env:NAME}</code> or a secrets manager.</li>
+              <li><strong>Masked logs:</strong> secrets and tokens are redacted from every log line, even in debug mode.</li>
+              <li><strong>Locked-down relaying:</strong> API key for callers, allow-listed hosts and blocked internal addresses (SSRF protection).</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4" data-reveal data-reveal-delay="80">
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-cloud"></i></span>
+            <h3>Cloud-native ready</h3>
+            <ul class="check-list">
+              <li>One static binary for Linux, macOS and Windows; runs in any container or under systemd.</li>
+              <li>Liveness and readiness endpoints for Kubernetes, and graceful draining on shutdown.</li>
+              <li>HTTPS with automatic certificate reload, e.g. from cert-manager.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4" data-reveal data-reveal-delay="160">
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-file-lock"></i></span>
+            <h3>Helps with compliance</h3>
+            <ul class="check-list">
+              <li>No credentials in code or config files, and no tokens on disk to protect or audit.</li>
+              <li>Every request logged once with a request ID that is passed to the API, for traceability.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 offset-lg-2" data-reveal>
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-gear"></i></span>
+            <h3>Simple operations</h3>
+            <ul class="check-list">
+              <li>No database, no cache, no state to back up: just a configuration file.</li>
+              <li>Prometheus metrics for requests, token renewals and expiry, with suggested alerts.</li>
+              <li><code>--check-config</code> validates a configuration in CI before it is deployed.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4" data-reveal data-reveal-delay="80">
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-arrow-repeat"></i></span>
+            <h3>Resilient by design</h3>
+            <ul class="check-list">
+              <li>Keeps using the current token while the identity provider is down, and retries with backoff.</li>
+              <li>Callers get <code>503</code> during an outage so they can retry, and recover without a restart.</li>
+              <li>Rotated secrets are picked up on a schedule, without restarting.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How Does It Work Section: pinned while scrolling; the icon and step change as you scroll (journey.js) -->
+  <section id="how-it-works" class="section journey" data-journey>
+    <div class="journey-sticky">
+      <div class="container">
+        <p class="eyebrow">How does it work?</p>
+        <h2 class="section-title">Four steps.<br><em>No secrets left behind.</em></h2>
+        <p class="journey-flow">
+          Your service <i class="bi bi-arrow-right"></i> OAUTH2Relay (token in memory) <i class="bi bi-arrow-right"></i> Third-party API
+        </p>
+        <div class="row align-items-center g-4">
+          <div class="col-md-5">
+            <div class="journey-stage" aria-hidden="true">
+              <i class="bi bi-key-fill is-active" data-journey-icon></i>
+              <i class="bi bi-box-arrow-in-right" data-journey-icon></i>
+              <i class="bi bi-arrow-repeat" data-journey-icon></i>
+              <i class="bi bi-trash3-fill" data-journey-icon></i>
+            </div>
+          </div>
+          <div class="col-md-7">
+            <div class="journey-chapters">
+              <article class="is-active" data-journey-chapter>
+                <p class="journey-step">Step 1 of 4</p>
+                <h3>Credentials injected at startup</h3>
+                <p>The configuration refers to the client secret or signing key as <code>${env:NAME}</code> or <code>${vault:path:key}</code>. The relay resolves them when it starts, and masks them in every log line.</p>
+              </article>
+              <article data-journey-chapter>
+                <p class="journey-step">Step 2 of 4</p>
+                <h3>Login to the identity provider</h3>
+                <p>The relay obtains an access token with the client credentials, JWT bearer or password grant, retrying with backoff if the provider is unavailable. It reports ready once it holds a token.</p>
+              </article>
+              <article data-journey-chapter>
+                <p class="journey-step">Step 3 of 4</p>
+                <h3>Token added to every request</h3>
+                <p>Each request your services send is relayed with the token added. Before the token expires it is renewed in the background, by refresh token or a new login, so no request waits.</p>
+              </article>
+              <article data-journey-chapter>
+                <p class="journey-step">Step 4 of 4</p>
+                <h3>Nothing left behind</h3>
+                <p>On shutdown the relay finishes in-flight requests and exits. The tokens existed only in memory, so nothing remains on disk to steal.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+        <div class="journey-rail" aria-hidden="true">
+          <i class="is-active"></i><i></i><i></i><i></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Best Practices Section -->
+  <section id="best-practices" class="section pt-0">
+    <div class="container">
+      <div class="panel" data-reveal>
+        <div class="row g-4 align-items-center">
+          <div class="col-lg-5">
+            <p class="eyebrow">Security best practices</p>
+            <h2 class="panel-title">Harden the<br><em>environment too.</em></h2>
+            <p class="lead-muted mb-0"><a href="operations.html#checklist">Production checklist <i class="bi bi-arrow-up-right"></i></a></p>
+          </div>
+          <div class="col-lg-7">
+            <ul class="icon-list">
+              <li><i class="bi bi-safe"></i>Inject credentials from a secrets manager or your platform's secret store, never the config file.</li>
+              <li><i class="bi bi-lock"></i>Serve HTTPS with <code>tls</code>, or put the relay behind a TLS-terminating proxy.</li>
+              <li><i class="bi bi-key"></i>Set an <code>apiKey</code> so only your services can call the relay.</li>
+              <li><i class="bi bi-person-lock"></i>Run it as an unprivileged user with least-privilege access to its secrets.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases Section -->
+  <section id="use-cases" class="section section-tint">
+    <div class="container">
+      <div class="row g-4 align-items-end mb-5">
+        <div class="col-lg-6" data-reveal>
+          <p class="eyebrow">Use cases</p>
+          <h2 class="section-title">Wherever an API<br><em>needs a token.</em></h2>
+        </div>
+        <div class="col-lg-6" data-reveal>
+          <p class="lead-muted mb-0">Any service that calls an OAuth 2.0 protected API can hand the token work to OAUTH2Relay and keep credentials out of its own code.</p>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4" data-reveal>
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-diagram-3"></i></span>
+            <h3>Microservices</h3>
+            <p>Run one relay per API as a shared service or a sidecar, so every service calls the API without its own token handling.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4" data-reveal data-reveal-delay="80">
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-cloud"></i></span>
+            <h3>Kubernetes and containers</h3>
+            <p>Credentials from Kubernetes Secrets, Vault or workload identity; probes, metrics and certificate reload included.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4" data-reveal data-reveal-delay="160">
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-lightning-charge"></i></span>
+            <h3>Serverless functions</h3>
+            <p>Short-lived functions call a relay running as a service and get a ready token, instead of logging in on every cold start.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4" data-reveal>
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-plug"></i></span>
+            <h3>Partner and SaaS APIs</h3>
+            <p>Payment, logistics and SaaS APIs that issue client credentials: one relay holds the token, with the secret kept in your vault.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4" data-reveal data-reveal-delay="80">
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-heart-pulse"></i></span>
+            <h3>Regulated industries</h3>
+            <p>Finance and healthcare teams keep credentials in an audited secrets manager and tokens off disk, with every request logged.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4" data-reveal data-reveal-delay="160">
+          <div class="feature-card">
+            <span class="tile-icon"><i class="bi bi-cpu"></i></span>
+            <h3>Edge and on-premises</h3>
+            <p>A single static binary with no database runs on small servers and gateways, and its tokens vanish on reboot.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technical Highlights Section -->
+  <section id="technical-highlights" class="section">
+    <div class="container">
+      <div class="row g-4 g-lg-5 align-items-center">
+        <div class="col-lg-5" data-reveal>
+          <p class="eyebrow">Technical highlights</p>
+          <h2 class="section-title">Configure with<br><em>environment variables.</em></h2>
+          <p class="lead-muted">Write <code>${env:API_CLIENT_SECRET}</code> in the configuration and OAUTH2Relay reads the variable at startup, so the file itself never holds a secret. An unset variable stops the relay with a clear error.</p>
+          <ul class="icon-list">
+            <li><i class="bi bi-terminal"></i><span><strong>Environment variables:</strong> export the credentials, then start the relay. <a href="docs.html#env">How it works</a>.</span></li>
+            <li><i class="bi bi-safe"></i><span><strong>Secrets managers:</strong> AWS Secrets Manager, HashiCorp Vault and Azure Key Vault, re-fetched on a schedule for rotation. <a href="docs.html#secrets">Secrets</a>.</span></li>
+            <li><i class="bi bi-signpost-split"></i><span><strong>Flexible routing:</strong> one endpoint, a whole API, or allow-listed hosts chosen by the caller. <a href="docs.html#modes">Relay modes</a>.</span></li>
+          </ul>
+        </div>
+        <div class="col-lg-7" data-reveal data-reveal-delay="120">
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>terminal</span></div>
+            <pre><code class="language-bash">$ export API_CLIENT_SECRET='s3cr3t!'
+
+$ cat config.json
+{
+  "port": 8080,
+  "host": "127.0.0.1",
+  "login": {
+    "url": "https://auth.example.com/oauth/token",
+    "grant_type": "client_credentials",
+    "client_id": "my-service",
+    "client_secret": "${env:API_CLIENT_SECRET}"
+  },
+  "relay": {
+    "url": "https://api.example.com/v1",
+    "headers": { "Authorization": "Bearer ${ACCESSTOKEN}" }
+  }
+}
+
+$ oauth2relay --check-config --config config.json
+config.json: configuration is valid
+
+$ oauth2relay --config config.json
+$ curl http://127.0.0.1:8080/orders   # relayed to /v1/orders with the token
+</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download Section -->
+  <section id="download" class="section section-tint">
+    <div class="container">
+      <div class="row g-4 g-lg-5">
+        <div class="col-lg-5" data-reveal>
+          <p class="eyebrow">Download</p>
+          <h2 class="section-title">Version 2.4.1.<br><em>Free and open source.</em></h2>
+          <p class="lead-muted">Each archive holds the binary, the licence, the documentation and a hardened systemd unit. Verify the download against <code>SHA256SUMS</code> before installing it.</p>
+          <p class="lead-muted"><a href="docs.html#install">Installation guide <i class="bi bi-arrow-up-right"></i></a> &nbsp; <a href="docs.html#upgrading">Upgrade notes <i class="bi bi-arrow-up-right"></i></a></p>
+        </div>
+        <div class="col-lg-7" data-reveal data-reveal-delay="120">
+          <ul class="download-list">
+            <li><i class="bi bi-terminal"></i><span><strong>Linux</strong> x86-64</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_linux_amd64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-terminal"></i><span><strong>Linux</strong> ARM64</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_linux_arm64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-apple"></i><span><strong>macOS</strong> Apple silicon</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_darwin_arm64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-apple"></i><span><strong>macOS</strong> Intel</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_darwin_amd64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-windows"></i><span><strong>Windows</strong> x64</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_windows_amd64.zip">zip <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-windows"></i><span><strong>Windows</strong> ARM64</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_windows_arm64.zip">zip <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-fingerprint"></i><span><strong>Checksums</strong></span><a href="downloads/v2.4.1/SHA256SUMS">SHA256SUMS <i class="bi bi-download"></i></a></li>
+          </ul>
+          <div class="code-window mt-4">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>install on Linux</span></div>
+            <pre><code>$ sha256sum -c SHA256SUMS --ignore-missing
+oauth2relay_2.4.1_linux_amd64.tar.gz: OK
+$ tar xzf oauth2relay_2.4.1_linux_amd64.tar.gz
+$ sudo install -m 0755 oauth2relay_2.4.1_linux_amd64/oauth2relay /usr/local/bin/
+$ oauth2relay --version
+OAUTH2Relay version 2.4.1</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Open source and support Section -->
+  <section id="open-source" class="section">
+    <div class="container">
+      <div class="panel" data-reveal>
+        <div class="row g-4 g-lg-5 align-items-center">
+          <div class="col-lg-5">
+            <p class="eyebrow">Open source</p>
+            <h2 class="panel-title">Free to use.<br><em>Support when you need it.</em></h2>
+          </div>
+          <div class="col-lg-7">
+            <ul class="icon-list">
+              <li><i class="bi bi-unlock"></i><span><strong>Apache License 2.0:</strong> use, modify and run OAUTH2Relay in production, including commercially, at no cost.</span></li>
+              <li><i class="bi bi-shield-check"></i><span><strong>Security fixes</strong> for the latest release. Report vulnerabilities privately to <a href="mailto:security@fijomi.com">security@fijomi.com</a>.</span></li>
+              <li><i class="bi bi-building"></i><span><strong>Commercial support and an enterprise edition</strong> for organisations are available from Fijomi Systems. <a href="#contact-us">Get in touch</a>.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="section section-tint">
+    <div class="container narrow">
+      <div class="section-head text-center" data-reveal>
+        <p class="eyebrow">FAQ</p>
+        <h2 class="section-title">Questions,<br><em>answered.</em></h2>
+      </div>
+      <div class="accordion faq" id="faqAccordion" data-reveal>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="true" aria-controls="faq1">Is OAUTH2Relay free?</button>
+          </h3>
+          <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+            <div class="accordion-body">Yes. It is open source under the Apache License 2.0, so you can use it, change it and run it commercially at no cost. Commercial support and an enterprise edition are available from Fijomi Systems.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">How do I handle credentials in production?</button>
+          </h3>
+          <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body">Keep them out of the configuration file. Reference environment variables with <code>${env:NAME}</code>, injected by Kubernetes Secrets, systemd or your container platform, or fetch them from AWS Secrets Manager, HashiCorp Vault or Azure Key Vault. See <a href="docs.html#secrets">Secrets</a>.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">What happens if the process crashes?</button>
+          </h3>
+          <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body">The tokens are lost with it, because they only ever exist in memory. When the relay starts again it logs in with the credentials from your environment or secrets manager and gets a new token. Its readiness endpoint reports ready once it has one.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">Which identity providers does it work with?</button>
+          </h3>
+          <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body">Any OAuth 2.0 token endpoint that supports the <code>client_credentials</code>, JWT bearer (RFC 7523) or <code>password</code> grant, including signed assertions with RSA, RSA-PSS and ECDSA keys as used by Google service accounts and Salesforce. Providers with their own login format can use a custom request. See <a href="docs.html#grants">Grant types</a>.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5">Can one relay serve more than one API endpoint?</button>
+          </h3>
+          <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body">Yes. In <code>passthrough</code> mode, the request path is appended to a base URL, so one relay covers a whole API. In <code>parameter</code> mode, callers pass the full target URL in a parameter, and it must point to a host in your <code>allowed_hosts</code> list. One relay uses one identity provider configuration. See <a href="docs.html#modes">Relay modes</a>.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6" aria-expanded="false" aria-controls="faq6">Can I use it with serverless functions?</button>
+          </h3>
+          <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body">Yes, as a service your functions call. OAUTH2Relay is a long-running HTTP server, so run it in a container or on a VM, and point your functions at it. They then get a ready token on every call instead of logging in on each cold start.</div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7" aria-expanded="false" aria-controls="faq7">How do I monitor it?</button>
+          </h3>
+          <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body">Scrape <code>/metrics</code> with Prometheus and use <code>/healthz</code> and <code>/readyz</code> for liveness and readiness. The <a href="operations.html#monitoring">operations guide</a> lists the alerts to set, such as failing token renewals and an expiring TLS certificate.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Us Section -->
+  <section id="contact-us" class="section">
+    <div class="container">
+      <div class="panel" data-reveal>
+        <div class="row g-4 g-lg-5">
+          <div class="col-lg-5">
+            <p class="eyebrow">Contact us</p>
+            <h2 class="panel-title">Talk to<br><em>the team.</em></h2>
+            <p class="lead-muted">Questions about OAUTH2Relay, commercial support or the enterprise edition? Send us a message.</p>
+          </div>
+          <div class="col-lg-7">
+            <form id="contactForm" method="POST" data-spam-escudo>
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <label for="contactName" class="form-label">Name</label>
+                  <input type="text" class="form-control" id="contactName" name="name" data-spam-escudo-field="name" placeholder="Your Name">
+                </div>
+                <div class="col-sm-6">
+                  <label for="contactEmail" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="contactEmail" name="email" data-spam-escudo-field="email" placeholder="name@example.com">
+                </div>
+                <div class="col-12">
+                  <label for="contactMessage" class="form-label">Message</label>
+                  <textarea class="form-control" id="contactMessage" name="message" data-spam-escudo-field="body" rows="4" placeholder="Your Message"></textarea>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn-pill btn-pill-primary">Send Message <i class="bi bi-arrow-up-right"></i></button>
+                  <p id="contactStatus" class="form-status" role="status" aria-live="polite" hidden><i class="bi bi-check2-circle"></i> Thank you, your message has been sent.</p>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- Closing call to action -->
+  <section class="cta-band">
+    <div class="container text-center" data-reveal>
+      <h2 class="section-title">Keep tokens out of storage.<br><em>Start in minutes.</em></h2>
+      <div class="d-flex flex-wrap justify-content-center gap-3 mt-4">
+        <a class="btn-pill btn-pill-primary" href="#download">Download <i class="bi bi-download"></i></a>
+        <a class="btn-pill" href="docs.html#quickstart">Quick start <i class="bi bi-arrow-up-right"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="row g-4 g-lg-5 footer-main">
+        <div class="col-lg-4">
+          <a class="brand" href="#top">
+            <img src="favicon.png" alt="" width="28" height="28">
+            <span>OAUTH2Relay</span>
+          </a>
+          <p class="footer-tagline">Open source OAuth 2.0 token relay.<br>Tokens in memory, credentials from your environment.</p>
+          <a class="footer-link-accent" href="#contact-us">Let’s talk <i class="bi bi-arrow-up-right"></i></a>
+        </div>
+        <nav class="col-6 col-md-4 col-lg-2 offset-lg-2" aria-label="Footer product">
+          <h2>Product</h2>
+          <a href="#what-is">Overview</a>
+          <a href="#advantages">Advantages</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#download">Download</a>
+        </nav>
+        <nav class="col-6 col-md-4 col-lg-2" aria-label="Footer resources">
+          <h2>Resources</h2>
+          <a href="docs.html">Documentation</a>
+          <a href="docs.html#reference">Configuration reference</a>
+          <a href="operations.html">Operations guide</a>
+          <a href="docs.html#upgrading">Upgrade notes</a>
+        </nav>
+        <nav class="col-6 col-md-4 col-lg-2" aria-label="Footer company">
+          <h2>Company</h2>
+          <a href="https://fijomi.com" target="_blank" rel="noopener">Fijomi Systems <i class="bi bi-arrow-up-right"></i></a>
+          <a href="#contact-us">Contact</a>
+          <a href="docs.html#security">Security</a>
+        </nav>
+      </div>
+
+      <div class="footer-compliance">
+        <h2>Security built in</h2>
+        <ul>
+          <li><i class="bi bi-memory"></i>No tokens on disk</li>
+          <li><i class="bi bi-eye-slash"></i>Secrets masked in logs</li>
+          <li><i class="bi bi-lock"></i>TLS 1.2+</li>
+          <li><i class="bi bi-shield-check"></i>SSRF protection</li>
+        </ul>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2024–2026 Fijomi Systems SL. OAUTH2Relay is open source under the <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener">Apache License 2.0</a>.</span>
+        <span>Built by <a href="https://fijomi.com" target="_blank" rel="noopener">Fijomi Systems <i class="bi bi-arrow-up-right"></i></a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap Bundle with Popper JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Scroll-driven "How Does It Work?" section and fade-in on scroll -->
+  <script src="journey.js" defer></script>
+  <script src="reveal.js" defer></script>
+
+  <!-- SPAM Escudo contact form spam protection -->
+  <script src="https://spamescudo.com/spam-escudo.js" defer></script>
+
+  <!-- Contact form: submissions are handled by SPAM Escudo -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (!window.SpamEscudo) {
+        return;
+      }
+      var status = document.getElementById("contactStatus");
+      var hideTimer;
+      window.SpamEscudo.init({
+        apiKey: "se_pub_v1_us_SwWR8HOqayDLUqOxJF21GEfBTUD3LxE63zcXC92cSiL", // Public, browser-safe submit key
+        formSelector: "form[data-spam-escudo]",
+        honeypot: true,
+        onComplete: function(form) {
+          form.reset();
+          status.hidden = false;
+          clearTimeout(hideTimer);
+          hideTimer = setTimeout(function() {
+            status.hidden = true;
+          }, 6000);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

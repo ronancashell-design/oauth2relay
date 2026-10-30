@@ -1,0 +1,9 @@
+# Only go.mod, go.sum, the Go sources, LICENSE and NOTICE are needed to build
+# the image.
+*
+!go.mod
+!go.sum
+!**/*.go
+!LICENSE
+!NOTICE
+**/*_test.go

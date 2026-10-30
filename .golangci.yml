@@ -1,0 +1,21 @@
+version: "2"
+linters:
+  enable:
+    - bodyclose
+    - errorlint
+    - gosec
+    - misspell
+    - noctx
+    - staticcheck
+  exclusions:
+    presets:
+      # Unchecked Close, Flush, fmt.Print* and similar.
+      - std-error-handling
+    rules:
+      # Tests use fixed fake credentials, background contexts and ignore
+      # errors from test servers on purpose.
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gosec
+          - noctx

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-TBHH2VX7');</script>
+  <!-- End Google Tag Manager -->
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operations guide – OAUTH2Relay</title>
+  <meta name="description" content="Run OAUTH2Relay in production: checklist, systemd, containers and Kubernetes, scaling, monitoring and alerts, troubleshooting, and credential rotation.">
+  <link rel="canonical" href="https://oauth2relay.com/operations.html">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0a7a5a">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="OAUTH2Relay">
+  <meta property="og:url" content="https://oauth2relay.com/operations.html">
+  <meta property="og:title" content="OAUTH2Relay operations guide">
+  <meta property="og:description" content="Deploy, monitor and troubleshoot OAUTH2Relay in production.">
+  <meta property="og:image" content="https://oauth2relay.com/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Mona+Sans:wght@400..700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBHH2VX7"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+  <header class="site-header">
+    <div class="container d-flex align-items-center justify-content-between">
+      <a class="brand" href="index.html">
+        <img src="favicon.png" alt="" width="28" height="28">
+        <span>OAUTH2Relay</span>
+      </a>
+      <nav class="site-nav d-none d-lg-flex" aria-label="Main">
+        <a href="index.html#advantages">Advantages</a>
+        <a href="index.html#how-it-works">How it works</a>
+        <a href="index.html#use-cases">Use cases</a>
+        <a href="docs.html">Docs</a>
+        <a href="operations.html" aria-current="page">Operations</a>
+        <a href="index.html#faq">FAQ</a>
+      </nav>
+      <a class="btn-pill btn-pill-primary btn-pill-sm" href="index.html#download">Download <i class="bi bi-download"></i></a>
+    </div>
+  </header>
+
+  <main id="top">
+
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Operations guide · version 2.1</p>
+      <h1 class="display-title">Run it in<br><em>production.</em></h1>
+      <p class="lead-muted">How to deploy, scale, monitor and troubleshoot OAUTH2Relay, and how to rotate its credentials. Every setting mentioned here is described in the <a href="docs.html">documentation</a>.</p>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="container">
+      <div class="row g-4 g-lg-5">
+        <div class="col-lg-3 d-none d-lg-block">
+          <nav class="guide-toc" aria-label="Operations guide">
+            <span class="toc-group">Deploy</span>
+            <a href="#checklist">Production checklist</a>
+            <a href="#systemd">systemd</a>
+            <a href="#containers">Containers</a>
+            <a href="#kubernetes">Kubernetes</a>
+            <a href="#shutdown">Shutdown</a>
+            <span class="toc-group">Run</span>
+            <a href="#scaling">Scaling</a>
+            <a href="#monitoring">Monitoring</a>
+            <a href="#startup-failures">Startup failures</a>
+            <a href="#request-failures">Request failures</a>
+            <a href="#rotation">Rotating credentials</a>
+            <a href="#upgrading">Upgrading</a>
+          </nav>
+        </div>
+
+        <div class="col-lg-9 guide">
+
+          <h2 id="deploy">Deploy</h2>
+
+          <h3 id="checklist">Production checklist</h3>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Setting</th><th>Recommendation</th></tr></thead>
+              <tbody>
+                <tr><td><code>tls</code></td><td>Set it, or run behind a TLS-terminating proxy that is the only way to reach the relay port.</td></tr>
+                <tr><td><code>apiKey</code></td><td>Set it unless the network already limits who can reach the relay. Always set it in <code>parameter</code> mode, where the caller chooses where the token is sent.</td></tr>
+                <tr><td><code>admin_port</code></td><td>Set it, on a private network, so metrics and health checks are separate from relayed traffic.</td></tr>
+                <tr><td><code>log_level</code></td><td><code>info</code>. <code>debug</code> logs request and response content and is for short investigations only.</td></tr>
+                <tr><td><code>log_format</code></td><td><code>json</code> if a log collector reads the logs.</td></tr>
+                <tr><td>Credentials</td><td><code>${env:NAME}</code> injected by your platform, or a secrets manager with <code>secrets_refresh_interval</code> if they rotate. Never in the file.</td></tr>
+                <tr><td><code>login.grant_type</code></td><td><code>client_credentials</code> or <code>jwt</code>. Avoid <code>password</code>.</td></tr>
+                <tr><td><code>relay.allowed_hosts</code></td><td><code>parameter</code> mode only: as narrow as possible, with <code>allowed_networks</code> empty unless needed.</td></tr>
+                <tr><td><code>server.shutdown_delay</code></td><td>Behind a load balancer or in Kubernetes, a few seconds (e.g. <code>5</code>) so traffic stops before the listener closes.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Check every configuration change before deploying it with <code>oauth2relay --check-config --config config.json</code>. It exits with status 1 and names the problem if the file is invalid, and prints warnings for discouraged settings. It contacts nothing, so it is safe in CI.</p>
+          <p>The relay needs its configuration file, outbound HTTPS to the identity provider, the API and any secrets managers, and nothing else: no database, and no disk apart from an optional <code>logfile</code>.</p>
+
+          <h3 id="systemd">systemd</h3>
+          <p>Each Linux archive includes <code>deploy/systemd/oauth2relay.service</code>, which runs the relay as an unprivileged <code>oauth2relay</code> user with a restrictive sandbox (<code>systemd-analyze security</code> rates it 1.2, "OK"). To install it:</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>terminal</span></div>
+            <pre><code>sudo install -m 0755 oauth2relay /usr/local/bin/oauth2relay
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin oauth2relay
+sudo install -d -m 0750 -g oauth2relay /etc/oauth2relay
+sudo install -m 0640 -g oauth2relay config.json /etc/oauth2relay/config.json
+sudo install -m 0600 /dev/null /etc/oauth2relay/oauth2relay.env   # then add VAR=value lines
+sudo install -m 0644 deploy/systemd/oauth2relay.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now oauth2relay
+journalctl -u oauth2relay -f</code></pre>
+          </div>
+          <ul>
+            <li>Environment variables go in <code>/etc/oauth2relay/oauth2relay.env</code>, mode <code>0600</code>, owned by root: credentials referenced as <code>${env:NAME}</code>, and secrets manager settings such as <code>AWS_REGION</code>, <code>VAULT_ADDR</code> or <code>VAULT_SECRET_ID</code>. The configuration file then holds no secrets.</li>
+            <li>The configuration is checked before each start, so a restart with an invalid configuration fails at once with the reason in the journal.</li>
+            <li>Logs go to the journal. If you set <code>logfile</code>, use <code>/var/log/oauth2relay/</code>, the only directory the service can write to.</li>
+            <li>The relay port must be 1024 or higher unless you uncomment the <code>CAP_NET_BIND_SERVICE</code> lines in the unit.</li>
+            <li>Keep the unit's <code>TimeoutStopSec</code> (45 seconds) above <code>shutdown_delay</code> + <code>shutdown_timeout</code>.</li>
+          </ul>
+          <p>To apply a configuration change, check it, then <code>systemctl restart oauth2relay</code>. In-flight requests are drained, but new connections are refused until the relay is ready again, so restart one instance at a time behind a load balancer.</p>
+
+          <h3 id="containers">Containers</h3>
+          <p>Build an image from the Linux binary with the Dockerfile in the <a href="docs.html#install">installation guide</a>. It is distroless, has no shell, and runs as UID 65532.</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>terminal</span></div>
+            <pre><code>docker build -t oauth2relay:2.1.0 .
+docker run -d --name oauth2relay -p 8080:8080 -p 9090:9090 \
+  -v /etc/oauth2relay:/etc/oauth2relay:ro \
+  --env-file /etc/oauth2relay/oauth2relay.env \
+  --read-only --cap-drop ALL --security-opt no-new-privileges \
+  oauth2relay:2.1.0</code></pre>
+          </div>
+          <ul>
+            <li>Set <code>"host": "0.0.0.0"</code>, otherwise the relay only listens inside the container.</li>
+            <li>The configuration file must be readable by UID 65532.</li>
+            <li>The image has no <code>HEALTHCHECK</code>, because it has no shell or HTTP client; use the orchestrator's HTTP checks on <code>/healthz</code> and <code>/readyz</code>.</li>
+          </ul>
+
+          <h3 id="kubernetes">Kubernetes</h3>
+          <p>The essential parts of a Deployment, with <code>"host": "0.0.0.0"</code>, <code>"admin_port": 9090</code> and <code>"server": {"shutdown_delay": 5}</code> in the configuration:</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>deployment.yaml</span></div>
+            <pre><code>spec:
+  template:
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: oauth2relay
+          image: registry.example.com/oauth2relay:2.1.0
+          ports:
+            - {name: relay, containerPort: 8080}
+            - {name: admin, containerPort: 9090}
+          envFrom:
+            - secretRef: {name: oauth2relay-env}     # API_CLIENT_SECRET=...
+          livenessProbe:
+            httpGet: {path: /healthz, port: admin}
+          readinessProbe:
+            httpGet: {path: /readyz, port: admin}
+            periodSeconds: 5
+          startupProbe:
+            httpGet: {path: /healthz, port: admin}
+            failureThreshold: 30
+            periodSeconds: 2
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: config, mountPath: /etc/oauth2relay, readOnly: true}
+      volumes:
+        - name: config
+          configMap:
+            name: oauth2relay-config</code></pre>
+          </div>
+          <p>With the credentials in a Secret exposed as environment variables, the configuration has no secrets and can live in a ConfigMap. For Vault, use the <code>kubernetes</code> auth method with a dedicated service account; for AWS and Azure, use workload identity (IRSA, EKS Pod Identity or Azure Workload Identity) rather than static keys.</p>
+          <p>Liveness passes as soon as the admin port is listening, so a slow first login does not get the pod restarted; readiness passes once the first token is obtained. TLS certificates mounted from a Secret, e.g. by cert-manager, are reloaded without a restart.</p>
+
+          <h3 id="shutdown">Shutdown</h3>
+          <p>On <code>SIGTERM</code> or <code>SIGINT</code> the relay:</p>
+          <ol>
+            <li>reports <code>draining</code> on <code>/readyz</code> and keeps serving for <code>server.shutdown_delay</code> seconds (default 0), so load balancers stop sending traffic;</li>
+            <li>stops accepting connections and waits up to <code>server.shutdown_timeout</code> seconds (default 15) for in-flight requests;</li>
+            <li>exits with status 0.</li>
+          </ol>
+
+          <h2 id="run">Run</h2>
+
+          <h3 id="scaling">Scaling</h3>
+          <p>The relay is stateless apart from its current token, so it scales horizontally behind any load balancer without session affinity.</p>
+          <p>Each replica obtains and renews its own token: with background refresh, N replicas make about N token requests per token lifetime, whether or not they serve traffic. Check that this stays within the identity provider's rate limits and any limit on active tokens per client. Login retries are jittered so replicas do not retry in step after an outage.</p>
+          <p>Form and JSON bodies are read into memory to merge parameters, up to <code>max_request_body_bytes</code> (10 MiB) each; other bodies are streamed. There are no published benchmarks yet: size replicas by load testing with your own traffic, watching <code>process_resident_memory_bytes</code> and <code>oauth2relay_request_duration_seconds</code>.</p>
+
+          <h3 id="monitoring">Monitoring</h3>
+          <p>Scrape <code>/metrics</code> with Prometheus (all metrics are in the <a href="docs.html#health">documentation</a>). Suggested alerts:</p>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Alert</th><th>Expression</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td>Token renewal failing</td><td><code>increase(oauth2relay_token_renewals_total{result="failure"}[10m]) &gt; 0</code></td><td>The identity provider is failing or rejecting the credentials. The current token is used until it expires.</td></tr>
+                <tr><td>Token expired</td><td><code>oauth2relay_token_expires_in_seconds &lt; 0</code></td><td>Requests are failing with <code>503</code> or <code>500</code>.</td></tr>
+                <tr><td>Relay errors</td><td><code>sum(rate(oauth2relay_requests_total{code=~"5.."}[5m])) / sum(rate(oauth2relay_requests_total[5m])) &gt; 0.05</code></td><td>More than 5% of requests fail, from the relay or the API; the <code>request</code> log lines tell them apart.</td></tr>
+                <tr><td>Certificate expiring</td><td><code>oauth2relay_tls_certificate_expiry_timestamp_seconds - time() &lt; 14 * 86400</code></td><td>The relay's certificate expires within 14 days and has not been renewed.</td></tr>
+                <tr><td>Secrets stale</td><td><code>time() - oauth2relay_secrets_last_refresh_timestamp_seconds &gt; 3 * &lt;interval&gt;</code></td><td>Secret re-fetches are failing; rotated credentials will not be picked up.</td></tr>
+                <tr><td>Relay down</td><td><code>up{job="oauth2relay"} == 0</code></td><td>Prometheus cannot scrape the relay.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Readiness does not fail when token renewal fails, so these alerts, not the load balancer, are how an identity provider problem is noticed. Every response carries an <code>X-Request-ID</code> header that matches the relay's log line and is sent to the API; ask callers for it when they report a failed request.</p>
+
+          <h3 id="startup-failures">Startup failures</h3>
+          <p>Startup failures are logged at <code>ERROR</code> with the cause in <code>error</code>, and the process exits with status 1.</p>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Log message</th><th>Cause and fix</th></tr></thead>
+              <tbody>
+                <tr><td><code>Failed to load config</code></td><td>The file is missing, unreadable or invalid. Run <code>--check-config</code> for the exact problem.</td></tr>
+                <tr><td><code>Failed to prepare the configuration</code></td><td>An environment variable in <code>${env:...}</code> is not set, or a secrets manager could not be reached, refused the credentials, or has no such secret or key. The error names the variable or the alias and secret.</td></tr>
+                <tr><td><code>Failed to load ca_file</code></td><td>The <code>ca_file</code> is missing or has no PEM certificates.</td></tr>
+                <tr><td><code>Failed to get initial valid token</code></td><td>The first login failed. <em>not retrying because the error is permanent</em>: the provider rejected the request (e.g. <code>invalid_client</code>), so check the client ID, secret, key and token URL. <em>no retries remaining</em>: it was unreachable or failing throughout.</td></tr>
+                <tr><td><code>Failed to set up TLS</code></td><td><code>tls.cert_file</code> or <code>tls.key_file</code> is missing or unreadable, or the certificate does not match the key.</td></tr>
+                <tr><td><code>Server failed</code></td><td>Usually the port is in use, or below 1024 without the capability to bind it.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="request-failures">Request failures</h3>
+          <p>The relay's own errors are JSON with an <code>error</code> code, and the <code>request</code> log line with the same <code>request_id</code> has the cause in <code>detail</code>. Responses without that body come from the API.</p>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Status and error</th><th>Likely cause</th><th>What to do</th></tr></thead>
+              <tbody>
+                <tr><td><code>401 unauthorized</code></td><td>Missing or wrong <code>X-API-Key</code>.</td><td>Check the caller's key; <code>inbound_auth_failures_total</code> counts these.</td></tr>
+                <tr><td><code>403 forbidden</code></td><td>Target host not in <code>allowed_hosts</code>.</td><td>Add the host if it should be allowed.</td></tr>
+                <tr><td><code>403 destination_blocked</code></td><td>The target resolves to an internal address.</td><td>If it is meant to be internal, add it to <code>allowed_networks</code>; otherwise the protection is working.</td></tr>
+                <tr><td><code>503 token_unavailable</code></td><td>The identity provider is unreachable, failing, or slower than <code>token_wait_timeout</code>.</td><td>Check the provider and the <em>Login failed; retrying</em> log lines. Requests succeed again once a token is obtained; no restart needed.</td></tr>
+                <tr><td><code>500 token_error</code></td><td>The provider rejected the credentials, e.g. after they were revoked.</td><td>Fix the credentials (see <a href="#rotation">Rotating credentials</a>).</td></tr>
+                <tr><td><code>502 upstream_error</code></td><td>DNS, connection or TLS failure to the API.</td><td>Check <code>detail</code>; for a private CA, set <code>ca_file</code>.</td></tr>
+                <tr><td><code>502 redirect_blocked</code></td><td>The API redirected to a host that is not allowed.</td><td>Point the relay at the final URL, or check <code>follow_redirects</code>.</td></tr>
+                <tr><td><code>504 upstream_timeout</code></td><td>The API took longer than <code>relay.timeout</code>.</td><td>Raise <code>relay.timeout</code> (and <code>server.write_timeout</code>) if it is legitimately slow.</td></tr>
+                <tr><td><code>413 request_too_large</code></td><td>Body over <code>max_request_body_bytes</code>.</td><td>Raise the limit if needed.</td></tr>
+                <tr><td><code>401</code>/<code>403</code> from the API</td><td>The token was issued but the API refuses it, usually a missing scope or audience.</td><td>Check the scope and audience requested and the API's logs.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>To investigate, restart one instance with <code>--log-level debug</code>. Debug logs include token and relayed requests and responses with secrets masked, but may contain personal data from request bodies; switch back to <code>info</code> afterwards. If a renewed certificate is not picked up, look for <em>Could not reload the TLS certificate</em>, usually a key that does not match.</p>
+
+          <h3 id="rotation">Rotating credentials</h3>
+          <h4>Client secret or private key</h4>
+          <p>With the credential in a secrets manager and <code>secrets_refresh_interval</code> set, no restart is needed:</p>
+          <ol>
+            <li>Create the new secret, or register the new public key, at the identity provider, keeping the old one valid.</li>
+            <li>Store the new value in the secrets manager under the same name (and update <code>jwt_key_id</code> if the provider selects keys by <code>kid</code>).</li>
+            <li>Wait one interval (check <code>oauth2relay_secrets_last_refresh_timestamp_seconds</code> on every replica) plus one token lifetime, so the next login uses the new credential.</li>
+            <li>Revoke the old credential.</li>
+          </ol>
+          <p>With <code>${env:NAME}</code> or a value in the file, update it and restart the replicas one at a time, then revoke the old credential.</p>
+          <h4>Relay API key</h4>
+          <p>The relay accepts one <code>apiKey</code>, so callers and relay switch together: make the new key available to callers, change it on the relay (at the next re-fetch if it comes from a secrets manager, otherwise by restarting), then switch the callers. Requests with the old key fail with <code>401</code> in between, so keep the window short.</p>
+          <h4>Secrets manager credentials</h4>
+          <ul>
+            <li><strong>AWS:</strong> use an IAM role (instance profile, IRSA or EKS Pod Identity); the SDK renews it itself.</li>
+            <li><strong>Vault AppRole:</strong> update the SecretID variable and restart. With <code>kubernetes</code> auth there is nothing to rotate.</li>
+            <li><strong>Azure:</strong> use a managed or workload identity; with a service principal, update the secret's variable and restart.</li>
+          </ul>
+          <h4>TLS certificate</h4>
+          <p>Replace the files at <code>tls.cert_file</code> and <code>tls.key_file</code>; the relay picks them up within 10 seconds of the next connection. Write the key first or rename both into place atomically, since the old certificate stays in use while the pair does not match.</p>
+
+          <h3 id="upgrading">Upgrading</h3>
+          <p>Read the <a href="docs.html#upgrading">upgrade notes</a> for the versions you are crossing, run <code>--check-config</code> with the new binary, then upgrade one replica at a time and check readiness and <code>oauth2relay_token_renewals_total</code> before continuing. The relay keeps no state apart from its token, so rolling back means starting the old binary, as long as the configuration uses no setting the older version lacks, such as <code>${env:...}</code> before 2.1.</p>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="row g-4 g-lg-5 footer-main">
+        <div class="col-lg-4">
+          <a class="brand" href="index.html">
+            <img src="favicon.png" alt="" width="28" height="28">
+            <span>OAUTH2Relay</span>
+          </a>
+          <p class="footer-tagline">Open source OAuth 2.0 token relay.<br>Tokens in memory, credentials from your environment.</p>
+          <a class="footer-link-accent" href="index.html#contact-us">Let’s talk <i class="bi bi-arrow-up-right"></i></a>
+        </div>
+        <nav class="col-6 col-md-4 col-lg-2 offset-lg-2" aria-label="Footer product">
+          <h2>Product</h2>
+          <a href="index.html#what-is">Overview</a>
+          <a href="index.html#advantages">Advantages</a>
+          <a href="index.html#how-it-works">How it works</a>
+          <a href="index.html#download">Download</a>
+        </nav>
+        <nav class="col-6 col-md-4 col-lg-2" aria-label="Footer resources">
+          <h2>Resources</h2>
+          <a href="docs.html">Documentation</a>
+          <a href="docs.html#reference">Configuration reference</a>
+          <a href="operations.html">Operations guide</a>
+          <a href="docs.html#upgrading">Upgrade notes</a>
+        </nav>
+        <nav class="col-6 col-md-4 col-lg-2" aria-label="Footer company">
+          <h2>Company</h2>
+          <a href="https://fijomi.com" target="_blank" rel="noopener">Fijomi Systems <i class="bi bi-arrow-up-right"></i></a>
+          <a href="index.html#contact-us">Contact</a>
+          <a href="docs.html#security">Security</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2024–2026 Fijomi Systems SL. OAUTH2Relay is open source under the <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener">Apache License 2.0</a>.</span>
+        <span>Built by <a href="https://fijomi.com" target="_blank" rel="noopener">Fijomi Systems <i class="bi bi-arrow-up-right"></i></a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

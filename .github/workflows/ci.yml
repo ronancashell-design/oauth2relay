@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  schedule:
+    # Weekly, so new vulnerabilities in dependencies are reported even when
+    # nothing is pushed.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: make vet
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.15.0
+          # Build golangci-lint with this module's toolchain; a prebuilt
+          # binary from an older Go cannot load the module.
+          install-mode: goinstall
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Unit tests with the race detector
+        # -coverpkg counts code exercised from other packages, such as
+        # internal/util through token and relay.
+        run: go test -race -coverpkg=./... -coverprofile=coverage.out ./...
+      - name: Coverage
+        run: go tool cover -func=coverage.out | tail -1 | tee -a "$GITHUB_STEP_SUMMARY"
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: test_scripts/requirements.txt
+      - run: pip install -r test_scripts/requirements.txt
+      - run: make integration
+
+  vulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: make vulncheck
+
+  licenses:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Dependency licences and NOTICE
+        run: make licenses
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: make docker IMAGE=oauth2relay VERSION=ci
+      - name: Smoke test
+        run: docker run --rm oauth2relay:ci --version
+      # Trivy runs from its pinned image rather than a third-party action.
+      - name: Scan for vulnerabilities
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.67.2 image --severity HIGH,CRITICAL --ignore-unfixed \
+            --exit-code 1 oauth2relay:ci

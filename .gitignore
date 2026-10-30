@@ -1,0 +1,36 @@
+._.git
+._.git
+._.gitignore
+._.git
+._config.json
+._go.mod
+._go.sum
+._main.go
+._oauth2relay
+._README.md
+oauth2relay.log
+web/._favicon.png
+web/._image.png
+web/._index.html
+web/._spinner.gif
+web/._styles.css
+._web
+._oauth2relay.log
+oauth2relay.tmp
+20250820.zip
+test_scripts/*.pyc
+test_scripts/__pycache__/
+*.swp
+
+# Build output, local configuration and logs
+/oauth2relay
+/config.json
+config.json.*
+*.log
+test_scripts/.venv/
+/dist/
+/.tools/
+/coverage.out
+
+# Local Claude Code settings
+.claude/settings.local.json

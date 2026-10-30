@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-TBHH2VX7');</script>
+  <!-- End Google Tag Manager -->
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation – OAUTH2Relay</title>
+  <meta name="description" content="Install and configure OAUTH2Relay: quick start, command line, and the complete configuration reference for login, token renewal, relay modes, TLS, secrets managers and environment variables.">
+  <link rel="canonical" href="https://oauth2relay.com/docs.html">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0a7a5a">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="OAUTH2Relay">
+  <meta property="og:url" content="https://oauth2relay.com/docs.html">
+  <meta property="og:title" content="OAUTH2Relay documentation">
+  <meta property="og:description" content="Quick start, installation and the complete configuration reference.">
+  <meta property="og:image" content="https://oauth2relay.com/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Mona+Sans:wght@400..700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBHH2VX7"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+  <header class="site-header">
+    <div class="container d-flex align-items-center justify-content-between">
+      <a class="brand" href="index.html">
+        <img src="favicon.png" alt="" width="28" height="28">
+        <span>OAUTH2Relay</span>
+      </a>
+      <nav class="site-nav d-none d-lg-flex" aria-label="Main">
+        <a href="index.html#advantages">Advantages</a>
+        <a href="index.html#how-it-works">How it works</a>
+        <a href="index.html#use-cases">Use cases</a>
+        <a href="docs.html" aria-current="page">Docs</a>
+        <a href="operations.html">Operations</a>
+        <a href="index.html#faq">FAQ</a>
+      </nav>
+      <a class="btn-pill btn-pill-primary btn-pill-sm" href="index.html#download">Download <i class="bi bi-download"></i></a>
+    </div>
+  </header>
+
+  <main id="top">
+
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Documentation · version 2.1</p>
+      <h1 class="display-title">Configure it<br><em>in one file.</em></h1>
+      <p class="lead-muted">Everything in the open source edition: installing OAUTH2Relay, running it, and every setting in its JSON configuration file. For deployment, monitoring and troubleshooting, see the <a href="operations.html">operations guide</a>.</p>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="container">
+      <div class="row g-4 g-lg-5">
+        <div class="col-lg-3 d-none d-lg-block">
+          <nav class="guide-toc" aria-label="Documentation">
+            <span class="toc-group">Getting started</span>
+            <a href="#quickstart">Quick start</a>
+            <a href="#install">Installation</a>
+            <a href="#cli">Command line</a>
+            <span class="toc-group">Configuration</span>
+            <a href="#reference">Configuration file</a>
+            <a href="#logging">Logging and errors</a>
+            <a href="#server">Server limits</a>
+            <a href="#health">Health checks and metrics</a>
+            <a href="#login">Login</a>
+            <a href="#grants">Grant types</a>
+            <a href="#refresh">Refresh</a>
+            <a href="#token">Token lifetime</a>
+            <a href="#relay">Relay</a>
+            <a href="#modes">Relay modes</a>
+            <a href="#tls">TLS</a>
+            <a href="#variables">Variables</a>
+            <a href="#secrets">Secrets managers</a>
+            <a href="#env">Environment variables</a>
+            <a href="#rotation">Rotating secrets</a>
+            <a href="#example">Complete example</a>
+            <span class="toc-group">More</span>
+            <a href="#upgrading">Upgrade notes</a>
+            <a href="#security">Security</a>
+          </nav>
+        </div>
+
+        <div class="col-lg-9 guide">
+
+          <!-- ============ Getting started ============ -->
+          <h2 id="getting-started">Getting started</h2>
+
+          <h3 id="quickstart">Quick start</h3>
+          <p>OAUTH2Relay needs a token endpoint and the API you want to call. This example uses the client credentials grant and takes the client secret from an environment variable.</p>
+          <ol>
+            <li>Download the archive for your platform from the <a href="index.html#download">download section</a> and put the <code>oauth2relay</code> binary on your path.</li>
+            <li>Write <code>config.json</code>:</li>
+          </ol>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>{
+  "port": 8080,
+  "host": "127.0.0.1",
+  "login": {
+    "url": "https://auth.example.com/oauth/token",
+    "grant_type": "client_credentials",
+    "client_id": "my-service",
+    "client_secret": "${env:API_CLIENT_SECRET}"
+  },
+  "relay": {
+    "mode": "passthrough",
+    "url": "https://api.example.com/v1",
+    "method": "inherit",
+    "headers": { "Authorization": "Bearer ${ACCESSTOKEN}" }
+  }
+}</code></pre>
+          </div>
+          <ol start="3">
+            <li>Check it, start the relay, and call the API through it:</li>
+          </ol>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>terminal</span></div>
+            <pre><code>$ oauth2relay --check-config --config config.json
+config.json: configuration is valid
+Secret placeholders were not resolved; they are checked when the relay starts.
+
+$ export API_CLIENT_SECRET='s3cr3t'
+$ oauth2relay --config config.json
+level=INFO msg="Starting OAUTH2Relay" version=2.4.1 log_level=info
+level=INFO msg="Initial access token obtained"
+level=INFO msg="Relay server listening" addr=127.0.0.1:8080 relay_mode=passthrough tls=false
+
+$ curl http://127.0.0.1:8080/orders?status=open
+# relayed as GET https://api.example.com/v1/orders?status=open
+# with "Authorization: Bearer &lt;token&gt;"</code></pre>
+          </div>
+          <p>Your services now call <code>http://127.0.0.1:8080</code> instead of the API, with no token handling of their own. The relay renews the token in the background before it expires.</p>
+
+          <h3 id="install">Installation</h3>
+          <p>OAUTH2Relay is a single static binary with no dependencies. Each release has an archive for Linux, macOS and Windows on x86-64 and ARM64, and a <code>SHA256SUMS</code> file. Each archive contains the binary, the licence and notices, this documentation in Markdown, and a systemd unit in <code>deploy/systemd/</code>.</p>
+          <h4>Linux</h4>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>terminal</span></div>
+            <pre><code>$ curl -LO https://oauth2relay.com/downloads/v2.4.1/oauth2relay_2.4.1_linux_amd64.tar.gz
+$ curl -LO https://oauth2relay.com/downloads/v2.4.1/SHA256SUMS
+$ sha256sum -c SHA256SUMS --ignore-missing
+oauth2relay_2.4.1_linux_amd64.tar.gz: OK
+$ tar xzf oauth2relay_2.4.1_linux_amd64.tar.gz
+$ sudo install -m 0755 oauth2relay_2.4.1_linux_amd64/oauth2relay /usr/local/bin/oauth2relay</code></pre>
+          </div>
+          <p>To run it as a service, use the hardened systemd unit in the archive; the <a href="operations.html#systemd">operations guide</a> has the installation steps.</p>
+          <h4>macOS</h4>
+          <p>Use <code>shasum -a 256 -c SHA256SUMS --ignore-missing</code> to verify the download. The binary is not signed with an Apple Developer ID, so macOS blocks it the first time. After checking the checksum, remove the quarantine flag: <code>xattr -d com.apple.quarantine oauth2relay</code>.</p>
+          <h4>Windows</h4>
+          <p>Extract the zip archive and run <code>oauth2relay.exe --config config.json</code> from a terminal. Check the download with <code>Get-FileHash oauth2relay_2.4.1_windows_amd64.zip -Algorithm SHA256</code> and compare the result with <code>SHA256SUMS</code>.</p>
+          <h4>Containers</h4>
+          <p>Copy the Linux binary into a minimal image. The relay needs only CA certificates, which the distroless base provides, and runs as a non-root user:</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>Dockerfile</span></div>
+            <pre><code>FROM gcr.io/distroless/static-debian13:nonroot
+COPY oauth2relay /usr/local/bin/oauth2relay
+USER 65532:65532
+EXPOSE 8080 9090
+ENTRYPOINT ["/usr/local/bin/oauth2relay"]
+CMD ["--config", "/etc/oauth2relay/config.json"]</code></pre>
+          </div>
+          <p>Inside a container, set <code>"host": "0.0.0.0"</code> so the relay is reachable from outside it. Kubernetes probes and settings are in the <a href="operations.html#kubernetes">operations guide</a>.</p>
+
+          <h3 id="cli">Command line</h3>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>oauth2relay --help</span></div>
+            <pre><code>oauth2relay [options] [config_file]
+
+Options:
+    --config FILE        Configuration file (default: config.json)
+    --check-config       Check the configuration file and exit
+    --log-level LEVEL    Override log_level: debug, info, warn or error
+    --log-format FORMAT  Override log_format: text or json
+    -h, --help           Show this help message
+    -v, --version        Show version information</code></pre>
+          </div>
+          <ul>
+            <li>Flags can be written with one or two dashes and can come before or after the configuration file. An unknown flag is an error (exit status 2).</li>
+            <li><code>--check-config</code> reads and checks the whole configuration, prints <code>&lt;file&gt;: configuration is valid</code> and exits with status 0, or prints the problem and exits with status 1. It also prints warnings for settings that work but are discouraged. It does not contact the identity provider or the secrets managers, and does not read <code>${env:...}</code> variables, so it is safe to run in CI.</li>
+            <li>On <code>SIGTERM</code> or <code>SIGINT</code> the relay stops accepting connections and finishes in-flight requests (see <a href="#server">Server limits</a>).</li>
+          </ul>
+
+          <!-- ============ Configuration ============ -->
+          <h2 id="configuration">Configuration</h2>
+
+          <h3 id="reference">Configuration file</h3>
+          <p>The configuration is one JSON file. Unknown fields are rejected, so a misspelt setting stops the relay at startup instead of being silently ignored, and the whole file is checked when it is loaded. Only <code>port</code>, <code>host</code>, a <code>relay</code> target and a way to get a token (<code>login</code> or <code>relay.fixedtoken</code>) are required.</p>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>port</code></td><td>required</td><td>Port of the relay server, 1–65535.</td></tr>
+                <tr><td><code>host</code></td><td>required</td><td>Address to listen on, e.g. <code>127.0.0.1</code>, or <code>0.0.0.0</code> for all interfaces.</td></tr>
+                <tr><td><code>apiKey</code></td><td>none</td><td>If set, callers must send a matching <code>X-API-Key</code> header or get <code>401</code>. Compared in constant time and never forwarded.</td></tr>
+                <tr><td><code>login</code></td><td>none</td><td>How to obtain the access token. See <a href="#login">Login</a>.</td></tr>
+                <tr><td><code>refresh</code></td><td>none</td><td>How to renew it with a refresh token. See <a href="#refresh">Refresh</a>.</td></tr>
+                <tr><td><code>relay</code></td><td>required</td><td>Where and how requests are relayed. See <a href="#relay">Relay</a>.</td></tr>
+                <tr><td><code>token</code></td><td></td><td>When the token is renewed. See <a href="#token">Token lifetime</a>.</td></tr>
+                <tr><td><code>token_wait_timeout</code></td><td>30</td><td>Seconds a request waits for a valid token before failing with <code>503</code>.</td></tr>
+                <tr><td><code>log_level</code>, <code>log_format</code>, <code>access_log</code>, <code>logfile</code></td><td></td><td>See <a href="#logging">Logging and errors</a>.</td></tr>
+                <tr><td><code>server</code></td><td></td><td>Timeouts and shutdown. See <a href="#server">Server limits</a>.</td></tr>
+                <tr><td><code>max_request_body_bytes</code></td><td>10485760</td><td>Largest request body accepted (10 MiB); larger bodies get <code>413</code>.</td></tr>
+                <tr><td><code>admin_port</code>, <code>health</code>, <code>metrics</code></td><td></td><td>See <a href="#health">Health checks and metrics</a>.</td></tr>
+                <tr><td><code>tls</code>, <code>ca_file</code></td><td></td><td>HTTPS and extra CA certificates. See <a href="#tls">TLS</a>.</td></tr>
+                <tr><td><code>trusted_proxies</code></td><td>none</td><td>Proxy or load balancer addresses (IPs or CIDR ranges). For requests from these, <code>${IP}</code> is taken from <code>X-Forwarded-For</code>: the rightmost address that is not itself a trusted proxy. Otherwise the header is ignored, because callers could forge it.</td></tr>
+                <tr><td><code>secrets_managers</code></td><td>none</td><td>See <a href="#secrets">Secrets managers</a>.</td></tr>
+                <tr><td><code>secrets_refresh_interval</code></td><td>0 (off)</td><td>Seconds between re-fetches of secrets, at least 60. See <a href="#rotation">Rotating secrets</a>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="logging">Logging and errors</h3>
+          <p>Logs are structured and written to stdout, which suits containers and systemd.</p>
+          <ul class="param-list">
+            <li><code>log_level</code>: <code>debug</code>, <code>info</code> (default), <code>warn</code> or <code>error</code>. <code>debug</code> adds the content of token and relay requests and responses, with secrets still masked; use it only for short investigations.</li>
+            <li><code>log_format</code>: <code>text</code> (default, <code>key=value</code> pairs) or <code>json</code> (one object per line, for log collectors).</li>
+            <li><code>access_log</code>: log one line per relayed request (default <code>true</code>). When <code>false</code>, only requests the relay rejected or failed are logged.</li>
+            <li><code>logfile</code>: write logs to this file, created with mode <code>0600</code>, instead of stdout. Rotate it with logrotate's <code>copytruncate</code>.</li>
+            <li><code>debug</code>: older setting; <code>true</code> is the same as <code>"log_level": "debug"</code>.</li>
+          </ul>
+          <p>Each relayed request produces one <code>request</code> line with <code>request_id</code>, <code>method</code>, <code>path</code>, <code>client_ip</code>, <code>status</code>, <code>duration_ms</code>, <code>bytes</code> and <code>upstream_host</code>, plus <code>error</code> and <code>detail</code> when the relay itself failed the request:</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>log</span></div>
+            <pre><code>level=WARN msg=request request_id=393e60c1... method=GET path=/slow client_ip=192.0.2.1 status=504 duration_ms=1001.7 bytes=134 upstream_host=api.example.com error=upstream_timeout detail="... context deadline exceeded ..."</code></pre>
+          </div>
+          <p><strong>Redaction.</strong> Every log line passes through a filter. Values from secrets managers and <code>${env:...}</code>, and the configured <code>apiKey</code>, <code>fixedtoken</code>, <code>password</code>, <code>client_secret</code>, <code>authstring</code>, <code>jwt_key</code> and <code>jwt_private_key</code>, are replaced with <code>[REDACTED]</code>. Tokens are shown as their first 4 characters and length, e.g. <code>eyJh…(len=1024)</code>. Sensitive form, JSON and header fields and PEM private keys are masked even when not otherwise known.</p>
+          <p><strong>Request IDs.</strong> Every request gets an ID: the caller's <code>X-Request-ID</code> if it is 1–128 letters, digits, <code>.</code>, <code>_</code>, <code>:</code> or <code>-</code>, otherwise a generated one. It is returned in the <code>X-Request-ID</code> response header, logged, and sent to the API so both sides' logs can be matched. List it in <code>relay.strip_headers</code> to stop sending it.</p>
+          <p><strong>Errors.</strong> Errors raised by the relay itself are JSON. Details such as an upstream address are logged under the request ID, not sent to the caller. Responses from the API, including its errors, are passed through unchanged.</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>response</span></div>
+            <pre><code>{"error": "upstream_error", "message": "The upstream request failed", "request_id": "4f1982d5462943cf..."}</code></pre>
+          </div>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Status</th><th><code>error</code></th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td>400</td><td><code>bad_request</code></td><td>Malformed request, or an invalid target URL in <code>parameter</code> mode.</td></tr>
+                <tr><td>401</td><td><code>unauthorized</code></td><td>Missing or wrong <code>X-API-Key</code>.</td></tr>
+                <tr><td>403</td><td><code>forbidden</code></td><td>Target host not in <code>allowed_hosts</code>.</td></tr>
+                <tr><td>403</td><td><code>destination_blocked</code></td><td><code>parameter</code> mode: the target resolves to an internal address not in <code>allowed_networks</code>.</td></tr>
+                <tr><td>413</td><td><code>request_too_large</code></td><td>Body larger than <code>max_request_body_bytes</code>.</td></tr>
+                <tr><td>500</td><td><code>token_error</code></td><td>No token could be obtained and retrying will not help, e.g. the identity provider rejected the credentials.</td></tr>
+                <tr><td>500</td><td><code>internal_error</code></td><td>Relay misconfiguration.</td></tr>
+                <tr><td>502</td><td><code>upstream_error</code></td><td>The relayed request failed (DNS, connection, TLS).</td></tr>
+                <tr><td>502</td><td><code>redirect_blocked</code></td><td>The API redirected somewhere not allowed.</td></tr>
+                <tr><td>503</td><td><code>token_unavailable</code></td><td>No token yet: the identity provider is unreachable or failing, or renewal took longer than <code>token_wait_timeout</code>. Retry later.</td></tr>
+                <tr><td>504</td><td><code>upstream_timeout</code></td><td>The API did not answer within <code>relay.timeout</code>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="server">Server limits</h3>
+          <p>The optional <code>server</code> section protects the relay from slow clients and controls shutdown. Values are in seconds except <code>max_header_bytes</code>.</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>"server": {
+  "read_header_timeout": 10,
+  "read_timeout": 60,
+  "write_timeout": 95,
+  "idle_timeout": 120,
+  "shutdown_timeout": 15,
+  "shutdown_delay": 0,
+  "max_header_bytes": 1048576
+}</code></pre>
+          </div>
+          <ul class="param-list">
+            <li><code>read_header_timeout</code>: time to receive the request headers (default 10).</li>
+            <li><code>read_timeout</code>: time to receive the whole request, including the body (default 60).</li>
+            <li><code>write_timeout</code>: time to handle the request and write the response (default <code>token_wait_timeout</code> + <code>relay.timeout</code> + 5). It must be at least <code>token_wait_timeout</code> + <code>relay.timeout</code>.</li>
+            <li><code>idle_timeout</code>: how long an idle keep-alive connection stays open (default 120).</li>
+            <li><code>shutdown_timeout</code>: on <code>SIGTERM</code>, how long in-flight requests get to finish (default 15).</li>
+            <li><code>shutdown_delay</code>: seconds between <code>SIGTERM</code> and closing the listener (default 0). Readiness reports <code>draining</code> meanwhile, so load balancers stop sending traffic first. Keep <code>shutdown_delay</code> + <code>shutdown_timeout</code> below the platform's grace period (30 seconds in Kubernetes).</li>
+            <li><code>max_header_bytes</code>: largest request header block accepted (default 1 MiB).</li>
+          </ul>
+
+          <h3 id="health">Health checks and metrics</h3>
+          <p>Three operational endpoints, which do not need the API key:</p>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td><code>/healthz</code></td><td>Liveness: <code>200 {"status":"ok"}</code> while the process serves HTTP.</td></tr>
+                <tr><td><code>/readyz</code></td><td>Readiness: <code>200</code> once the first token has been obtained (or <code>fixedtoken</code> is set); <code>503</code> while starting or shutting down. Also reports the token state (<code>fixed</code>, <code>none</code>, <code>valid</code>, <code>expired</code> or <code>renewal_failed</code>) and seconds to expiry, never the token.</td></tr>
+                <tr><td><code>/metrics</code></td><td>Prometheus metrics.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>"admin_port": 9090,
+"health": {"enabled": true, "liveness_path": "/healthz", "readiness_path": "/readyz"},
+"metrics": {"enabled": true, "path": "/metrics"}</code></pre>
+          </div>
+          <ul class="param-list">
+            <li><code>admin_port</code>: serve these endpoints on a separate port (same <code>host</code>). <strong>Recommended in production</strong>, so metrics are not reachable by relay callers. It starts listening before the first token is obtained, so liveness passes during a slow start-up.</li>
+            <li><code>health.enabled</code>, <code>metrics.enabled</code>: turn the endpoints off (default <code>true</code>).</li>
+            <li><code>health.liveness_path</code>, <code>health.readiness_path</code>, <code>metrics.path</code>: change the paths. Without <code>admin_port</code>, these exact paths are answered by the relay and not relayed.</li>
+          </ul>
+          <p>Readiness does not fail when a token renewal fails: requests renew the token themselves, so a replica taken out of the load balancer could never recover, and an identity provider outage affects every replica alike. Alert on the metrics instead.</p>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Metric (prefix <code>oauth2relay_</code>)</th><th>Type</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td><code>requests_total</code></td><td>counter</td><td>Relayed requests by <code>code</code> and <code>upstream_host</code>. <code>499</code> means the caller disconnected.</td></tr>
+                <tr><td><code>request_duration_seconds</code></td><td>histogram</td><td>Time to handle a request, including waiting for a token.</td></tr>
+                <tr><td><code>inbound_auth_failures_total</code></td><td>counter</td><td>Requests with a missing or wrong API key.</td></tr>
+                <tr><td><code>token_renewals_total</code></td><td>counter</td><td>Token endpoint requests by <code>type</code> (<code>login</code>, <code>refresh</code>) and <code>result</code>.</td></tr>
+                <tr><td><code>idp_request_duration_seconds</code></td><td>histogram</td><td>Time taken by token endpoint requests.</td></tr>
+                <tr><td><code>token_expires_in_seconds</code></td><td>gauge</td><td>Seconds until the token expires (negative once expired).</td></tr>
+                <tr><td><code>tls_certificate_expiry_timestamp_seconds</code></td><td>gauge</td><td>When the relay port's certificate expires. Only with <code>tls</code>.</td></tr>
+                <tr><td><code>secret_refreshes_total</code></td><td>counter</td><td>Periodic secret re-fetches by <code>result</code>.</td></tr>
+                <tr><td><code>secrets_last_refresh_timestamp_seconds</code></td><td>gauge</td><td>When secrets were last resolved. Only with <code>secrets_managers</code>.</td></tr>
+                <tr><td><code>build_info</code></td><td>gauge</td><td>Always 1, with <code>version</code> and <code>go_version</code> labels.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Go runtime and process metrics are included. Suggested alerts are in the <a href="operations.html#monitoring">operations guide</a>.</p>
+
+          <h3 id="login">Login</h3>
+          <p>The <code>login</code> section says how to obtain an access token from the identity provider.</p>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>url</code></td><td>required</td><td>Token endpoint, <code>http://</code> or <code>https://</code>.</td></tr>
+                <tr><td><code>grant_type</code></td><td>custom</td><td><code>client_credentials</code>, <code>jwt</code>, <code>password</code>, or empty for a custom request. See <a href="#grants">Grant types</a>.</td></tr>
+                <tr><td><code>client_id</code>, <code>client_secret</code></td><td></td><td>Client credentials, for the <code>client_credentials</code> and <code>password</code> grants.</td></tr>
+                <tr><td><code>scope</code>, <code>audience</code>, <code>resource</code></td><td></td><td>Optional token request fields for the standard grants, sent only when set. See <a href="#grant-params">Scope, audience and client authentication</a>.</td></tr>
+                <tr><td><code>client_auth</code></td><td><code>post</code></td><td><code>post</code> sends <code>client_id</code> and <code>client_secret</code> in the body; <code>basic</code> sends them in an <code>Authorization: Basic</code> header.</td></tr>
+                <tr><td><code>method</code></td><td></td><td>Custom grant only: HTTP method of the token request (empty means <code>GET</code>; a body is sent only with <code>POST</code>). The standard grants always use <code>POST</code>.</td></tr>
+                <tr><td><code>headers</code></td><td></td><td>Extra headers for the token request. For the standard grants the relay sets <code>Content-Type</code>, and <code>Authorization</code> when <code>client_auth</code> is <code>basic</code>.</td></tr>
+                <tr><td><code>parameters</code></td><td>standard names</td><td>Maps the relay's token fields to the names in the provider's JSON response: <code>AccessToken</code> (required), <code>RefreshToken</code>, <code>ExpiresIn</code> (seconds) and <code>ExpiresAt</code> (Unix time or RFC 3339, used when <code>ExpiresIn</code> is absent). Defaults to <code>access_token</code>, <code>refresh_token</code> and <code>expires_in</code> for the standard grants; the custom grant must set it.</td></tr>
+                <tr><td><code>timeout</code></td><td>10</td><td>Seconds before one token request times out.</td></tr>
+                <tr><td><code>retry_attempts</code></td><td>5</td><td>Total login attempts before giving up; 1 disables retries.</td></tr>
+                <tr><td><code>retry_interval</code></td><td>5</td><td>Seconds before the first retry; each later wait doubles.</td></tr>
+                <tr><td><code>retry_max_interval</code></td><td>60</td><td>Longest wait between retries.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h4 id="retries">Retries</h4>
+          <p>To renew a token the relay first tries a refresh and, if that fails, a login. A failed login is retried with exponential backoff, each wait shortened at random by up to half so that replicas do not retry in step. With the defaults the waits are about 5, 10, 20 and 40 seconds, and each failure is logged with the time of the next attempt.</p>
+          <p>Errors a retry cannot fix are not retried: a <code>4xx</code> response (except <code>408</code> and <code>429</code>), an OAuth error of <code>invalid_request</code>, <code>invalid_client</code>, <code>invalid_grant</code>, <code>unauthorized_client</code>, <code>unsupported_grant_type</code> or <code>invalid_scope</code>, or a configuration error. Only one renewal runs at a time; requests wait for it for at most <code>token_wait_timeout</code> seconds and then get <code>503</code>, while the renewal carries on in the background.</p>
+
+          <h3 id="grants">Grant types</h3>
+          <h4>Client credentials</h4>
+          <p>The usual grant for server-to-server access. <code>client_id</code> and <code>client_secret</code> are sent in a form-encoded body, or in an <code>Authorization: Basic</code> header with <code>"client_auth": "basic"</code>.</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>client_credentials</span></div>
+            <pre><code>"login": {
+  "url": "https://auth.example.com/oauth/token",
+  "grant_type": "client_credentials",
+  "client_id": "my-service",
+  "client_secret": "${env:API_CLIENT_SECRET}"
+}</code></pre>
+          </div>
+          <h4 id="grant-params">Scope, audience and client authentication</h4>
+          <p>Many providers need more than a client ID and secret. The <code>client_credentials</code>, <code>password</code> and <code>jwt</code> grants accept these optional fields, each sent in the request body only when set:</p>
+          <ul class="param-list">
+            <li><code>scope</code>: space-separated scopes (RFC 6749).</li>
+            <li><code>audience</code>: the API the token is for, as Auth0 and others expect.</li>
+            <li><code>resource</code>: the API the token is for, as an RFC 8707 resource indicator.</li>
+            <li><code>client_auth</code>: <code>post</code> (default) or <code>basic</code> for providers that want <code>client_secret_basic</code>. Not used by the <code>jwt</code> grant.</li>
+          </ul>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>Microsoft Entra ID</span></div>
+            <pre><code>"login": {
+  "url": "https://login.microsoftonline.com/&lt;tenant-id&gt;/oauth2/v2.0/token",
+  "grant_type": "client_credentials",
+  "client_id": "&lt;application-id&gt;",
+  "client_secret": "${env:ENTRA_CLIENT_SECRET}",
+  "scope": "api://&lt;api-application-id&gt;/.default"
+}</code></pre>
+          </div>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>Auth0</span></div>
+            <pre><code>"login": {
+  "url": "https://&lt;tenant&gt;.auth0.com/oauth/token",
+  "grant_type": "client_credentials",
+  "client_id": "&lt;client-id&gt;",
+  "client_secret": "${env:AUTH0_CLIENT_SECRET}",
+  "audience": "https://api.example.com"
+}</code></pre>
+          </div>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>Okta</span></div>
+            <pre><code>"login": {
+  "url": "https://&lt;org&gt;.okta.com/oauth2/&lt;server-id&gt;/v1/token",
+  "grant_type": "client_credentials",
+  "client_id": "&lt;client-id&gt;",
+  "client_secret": "${env:OKTA_CLIENT_SECRET}",
+  "client_auth": "basic",
+  "scope": "reports.read"
+}</code></pre>
+          </div>
+          <p>The custom grant rejects these fields; put them in <code>data</code> instead.</p>
+          <h4>JWT bearer (RFC 7523)</h4>
+          <p>The relay signs a JWT assertion and exchanges it for an access token, sent as <code>grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer</code> with the assertion in <code>assertion</code>. Use a shared secret (HMAC) or a private key, as Google service accounts and Salesforce do:</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>jwt with a private key</span></div>
+            <pre><code>"login": {
+  "url": "https://oauth2.googleapis.com/token",
+  "grant_type": "jwt",
+  "jwt_algorithm": "RS256",
+  "jwt_private_key": "${vault_prod:svc/jwt:private_key}",
+  "jwt_key_id": "key-2026-10",
+  "jwt_issuer": "svc@project.iam.gserviceaccount.com",
+  "jwt_audience": "https://oauth2.googleapis.com/token",
+  "jwt_scope": "https://www.googleapis.com/auth/drive.readonly"
+}</code></pre>
+          </div>
+          <ul class="param-list">
+            <li><code>jwt_algorithm</code>: <code>HS256</code> (default), <code>HS384</code>, <code>HS512</code>, <code>RS256</code>, <code>RS384</code>, <code>RS512</code>, <code>PS256</code>, <code>PS384</code>, <code>PS512</code>, <code>ES256</code>, <code>ES384</code> or <code>ES512</code>.</li>
+            <li><code>jwt_key</code>: shared secret for the <code>HS*</code> algorithms.</li>
+            <li><code>jwt_private_key</code>: PEM private key (PKCS #1, PKCS #8 or SEC 1) for <code>RS*</code>, <code>PS*</code> and <code>ES*</code>. A key on one line with literal <code>\n</code> sequences is accepted.</li>
+            <li><code>jwt_private_key_file</code>: path to a PEM key file, used when <code>jwt_private_key</code> is empty.</li>
+            <li><code>jwt_issuer</code>: <code>iss</code> claim (required).</li>
+            <li><code>jwt_subject</code>, <code>jwt_audience</code>, <code>jwt_scope</code>: <code>sub</code>, <code>aud</code> and <code>scope</code> claims (optional). Providers that read the scope from the request body need <code>scope</code> as well.</li>
+            <li><code>jwt_key_id</code>: <code>kid</code> header (optional).</li>
+            <li><code>jwt_lifetime</code>: seconds until the assertion expires (default 300).</li>
+            <li><code>jwt_claims</code>: extra claims, e.g. <code>{"tenant": "acme"}</code>; these override the claims above on a clash.</li>
+            <li><code>jwt_grant_type</code>: override the <code>grant_type</code> value for endpoints that use a non-standard one.</li>
+          </ul>
+          <p>Each assertion also carries <code>iat</code>, <code>nbf</code>, <code>exp</code> and a random <code>jti</code>. The key and claims are checked at startup, so an invalid key stops the relay before it serves.</p>
+          <h4>Password</h4>
+          <div class="note note-warn"><i class="bi bi-exclamation-triangle"></i><p>Not recommended. The relay holds a user's password and sends it to the identity provider. OAuth 2.0 Security Best Current Practice (RFC 9700) says this grant must not be used, and many providers have removed it. The relay logs a warning at startup when it is configured.</p></div>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>password</span></div>
+            <pre><code>"login": {
+  "url": "https://auth.example.com/oauth/token",
+  "grant_type": "password",
+  "user": "username",
+  "password": "${env:API_PASSWORD}",
+  "client_id": "my-client",
+  "client_secret": "${env:API_CLIENT_SECRET}"
+}</code></pre>
+          </div>
+          <h4>Custom</h4>
+          <p>For providers with their own login format, leave <code>grant_type</code> empty and build the request yourself with <code>method</code>, <code>headers</code> and <code>data</code>. <code>${USER}</code>, <code>${PASSWORD}</code> and <code>${AUTHSTRING}</code> refer to the <code>user</code>, <code>password</code> and <code>authstring</code> settings. <code>parameters</code> is required.</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>custom</span></div>
+            <pre><code>"login": {
+  "url": "https://saas.example.com/login",
+  "method": "POST",
+  "authstring": "${env:SAAS_BASIC_AUTH}",
+  "headers": { "Authorization": "Basic ${AUTHSTRING}" },
+  "data": "{\"scope\": \"read\"}",
+  "parameters": { "AccessToken": "AccessToken", "ExpiresIn": "ExpiresIn", "RefreshToken": "RefreshToken" }
+}</code></pre>
+          </div>
+
+          <h3 id="refresh">Refresh</h3>
+          <p>With a <code>refresh</code> section, the relay renews the token with the refresh token before falling back to a new login.</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>"refresh": {
+  "url": "https://auth.example.com/oauth/token",
+  "method": "POST",
+  "data": "grant_type=refresh_token&amp;refresh_token=${REFRESHTOKEN}",
+  "headers": { "Content-Type": "application/x-www-form-urlencoded" }
+}</code></pre>
+          </div>
+          <ul class="param-list">
+            <li><code>url</code>: refresh endpoint (required).</li>
+            <li><code>method</code>: HTTP method. Set it to <code>POST</code>: empty means <code>GET</code>, and <code>data</code> is sent only with <code>POST</code>.</li>
+            <li><code>data</code>: request body template; <code>${REFRESHTOKEN}</code> is the current refresh token.</li>
+            <li><code>headers</code>: extra headers.</li>
+            <li><code>token</code>: an initial refresh token, if you have one (optional).</li>
+            <li><code>parameters</code>: response field mapping, as for login (defaults to the standard names).</li>
+            <li><code>timeout</code>: seconds before a refresh request times out (default 10).</li>
+          </ul>
+
+          <h3 id="token">Token lifetime and background refresh</h3>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>"token": {
+  "expiry_buffer": 10,
+  "default_lifetime": 300,
+  "background_refresh": true,
+  "refresh_at": 0.8
+}</code></pre>
+          </div>
+          <ul class="param-list">
+            <li><code>expiry_buffer</code>: seconds subtracted from the lifetime the provider gives, so a token is not used right up to its expiry (default 10; at most half the lifetime of a short-lived token).</li>
+            <li><code>default_lifetime</code>: lifetime assumed when the response has no expiry field, or a negative or non-numeric one (default 300).</li>
+            <li><code>background_refresh</code>: renew the token before it expires, so requests do not wait for a renewal (default <code>true</code>).</li>
+            <li><code>refresh_at</code>: fraction of the lifetime after which the background refresh renews the token (default 0.8, between 0 and 1). A one-hour token is renewed after 48 minutes.</li>
+          </ul>
+          <p>With background refresh a failed renewal does not affect requests: the current token is used until it expires, the renewal is retried with backoff, and the failure is logged and counted. If the token does expire, requests renew it themselves. Without background refresh the token is renewed only when a request finds it expired, and that request waits. Background refresh means one renewal per token lifetime even when the relay is idle.</p>
+
+          <h3 id="relay">Relay</h3>
+          <p>The <code>relay</code> section says where requests go and what is added to them.</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>"relay": {
+  "mode": "passthrough",
+  "url": "https://api.example.com/v1",
+  "method": "inherit",
+  "timeout": 60,
+  "pushheaders": true,
+  "headers": {
+    "Authorization": "Bearer ${ACCESSTOKEN}",
+    "Accept": "application/json"
+  },
+  "parameters": {
+    "client_ip": "${IP}",
+    "country_code": "US"
+  }
+}</code></pre>
+          </div>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>mode</code></td><td>passthrough</td><td><code>single</code>, <code>passthrough</code> or <code>parameter</code>, case-insensitive. See <a href="#modes">Relay modes</a>.</td></tr>
+                <tr><td><code>url</code></td><td></td><td>Target URL. Required in <code>single</code> and <code>passthrough</code> modes.</td></tr>
+                <tr><td><code>method</code></td><td>GET</td><td>HTTP method of relayed requests, or <code>inherit</code> to use each caller's method.</td></tr>
+                <tr><td><code>headers</code></td><td></td><td>Headers added to relayed requests, usually <code>Authorization: Bearer ${ACCESSTOKEN}</code>.</td></tr>
+                <tr><td><code>parameters</code></td><td></td><td>Parameters merged into each relayed request. Keys are the outgoing names; values may use <a href="#variables">variables</a>.</td></tr>
+                <tr><td><code>data</code></td><td></td><td>A fixed body for methods other than <code>GET</code> and <code>HEAD</code>, instead of the caller's.</td></tr>
+                <tr><td><code>timeout</code></td><td>60</td><td>Seconds before a relayed request times out with <code>504</code>. A request is cancelled if the caller disconnects.</td></tr>
+                <tr><td><code>fixedtoken</code></td><td></td><td>Use this token instead of logging in.</td></tr>
+                <tr><td><code>pushheaders</code></td><td>false</td><td>Forward the caller's headers. <code>headers</code> take precedence. Never forwarded: <code>X-API-Key</code> and hop-by-hop headers. <code>Authorization</code> and <code>Cookie</code> are forwarded only if listed in <code>forward_headers</code>.</td></tr>
+                <tr><td><code>forward_headers</code></td><td></td><td>With <code>pushheaders</code>: forward only these headers (case-insensitive).</td></tr>
+                <tr><td><code>strip_headers</code></td><td></td><td>With <code>pushheaders</code>: headers never forwarded, in addition to the above.</td></tr>
+                <tr><td><code>follow_redirects</code></td><td>false</td><td>Follow up to 5 redirects that stay on the same host (or on <code>allowed_hosts</code>) and do not switch from <code>https</code> to <code>http</code>; others return <code>502</code>. By default a <code>3xx</code> is returned to the caller.</td></tr>
+                <tr><td><code>url_param</code>, <code>allowed_hosts</code>, <code>allowed_networks</code></td><td></td><td><code>parameter</code> mode only; see below.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>How parameters are merged.</strong> For <code>POST</code>, <code>PUT</code> and <code>PATCH</code> requests with a form-encoded or JSON body, the incoming query parameters and the configured <code>parameters</code> are merged into the body. For all other requests they are added to the target URL's query string; <code>GET</code> and <code>HEAD</code> carry no body, and other methods send <code>relay.data</code> if set or stream the caller's body through unchanged.</p>
+
+          <h3 id="modes">Relay modes</h3>
+          <p><code>relay.mode</code> decides where each request is sent. If the mode is not recognised, or a setting it needs is missing, the relay refuses to start and says why.</p>
+          <div class="mode-grid">
+            <div class="mode-card">
+              <p class="mode-name"><code>single</code></p>
+              <p>Every request goes to one fixed endpoint. The incoming path is ignored.</p>
+              <dl class="mode-flow">
+                <dt>In</dt><dd><code>localhost:8080/my_profile</code></dd>
+                <dt>Out</dt><dd><code>example.com/api/get_statuses</code></dd>
+              </dl>
+            </div>
+            <div class="mode-card">
+              <p class="mode-name"><code>passthrough</code> <span class="mode-badge">default</span></p>
+              <p>The incoming path is appended to the configured <code>url</code>.</p>
+              <dl class="mode-flow">
+                <dt>In</dt><dd><code>localhost:8080/my_profile</code></dd>
+                <dt>Out</dt><dd><code>example.com/api/my_profile</code></dd>
+              </dl>
+            </div>
+            <div class="mode-card">
+              <p class="mode-name"><code>parameter</code></p>
+              <p>The caller names the target URL. The parameter is stripped before relaying.</p>
+              <dl class="mode-flow">
+                <dt>In</dt><dd><code>localhost:8080/?external_url=https://example.com/my_profile</code></dd>
+                <dt>Out</dt><dd><code>example.com/my_profile</code></dd>
+              </dl>
+            </div>
+          </div>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>parameter</span></div>
+            <pre><code>"relay": {
+  "mode": "parameter",
+  "url_param": "external_url",
+  "allowed_hosts": ["example.com", "*.example.com"],
+  "allowed_networks": [],
+  "method": "GET",
+  "headers": { "Authorization": "Bearer ${ACCESSTOKEN}" }
+}</code></pre>
+          </div>
+          <p>In <code>parameter</code> mode the target URL can arrive in the query string, a form-encoded body or a JSON body, and is removed from all of them. The incoming path is never appended, and <code>${...}</code> placeholders are never expanded in a caller's URL.</p>
+          <ul class="param-list">
+            <li><code>url_param</code>: the incoming parameter holding the target URL (default <code>external_url</code>). Choose another name if the API has its own <code>external_url</code> parameter.</li>
+            <li><code>allowed_hosts</code>: required. Hosts the URL may point to, case-insensitive. <code>*.example.com</code> matches subdomains but not <code>example.com</code> itself; an entry with a port matches that port only. Others get <code>403 forbidden</code>; a missing or non-<code>http(s)</code> URL gets <code>400</code>.</li>
+            <li><code>allowed_networks</code>: internal addresses or CIDR ranges the relay may connect to, e.g. <code>["10.20.0.0/16"]</code>. Keep it empty unless you need to reach internal services.</li>
+          </ul>
+          <div class="note note-warn"><i class="bi bi-shield-exclamation"></i><p><strong>The token goes wherever the caller says.</strong> In <code>parameter</code> mode keep <code>allowed_hosts</code> narrow and set <code>apiKey</code>. The relay also refuses to connect to internal addresses: loopback, private networks (<code>10/8</code>, <code>172.16/12</code>, <code>192.168/16</code>, <code>fc00::/7</code>), link-local including the cloud metadata service at <code>169.254.169.254</code>, carrier-grade NAT and other reserved ranges, with <code>403 destination_blocked</code>. The check is made on the address actually connected to, after DNS resolution and on every redirect, so DNS rebinding cannot get round it. With an HTTP proxy, the addresses the name resolves to are checked before the request is handed to the proxy.</p></div>
+
+          <h3 id="tls">TLS</h3>
+          <p>The relay port serves plain HTTP unless <code>tls</code> is set:</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>"tls": {
+  "cert_file": "/etc/oauth2relay/tls.crt",
+  "key_file": "/etc/oauth2relay/tls.key",
+  "min_version": "1.2"
+},
+"ca_file": "/etc/oauth2relay/corporate-ca.pem"</code></pre>
+          </div>
+          <ul class="param-list">
+            <li><code>cert_file</code>, <code>key_file</code>: PEM certificate chain and private key. Set both to serve HTTPS; plain HTTP to that port then gets <code>400</code>.</li>
+            <li><code>min_version</code>: oldest TLS version accepted, <code>1.2</code> (default) or <code>1.3</code>.</li>
+            <li><code>ca_file</code>: CA certificates added to the system ones for connections to the token endpoint and the API, e.g. for a corporate CA. Secrets managers use their own settings (for Vault, <code>VAULT_CACERT</code>); <code>SSL_CERT_FILE</code> replaces the system CAs for every connection.</li>
+          </ul>
+          <p>The certificate is reloaded within 10 seconds of either file changing, so certificates renewed by cert-manager or certbot are picked up without a restart; if the new files cannot be loaded, the current certificate stays in use. The admin port always serves plain HTTP. Without <code>tls</code>, run the relay behind a TLS-terminating proxy that is the only way to reach it; the relay warns at startup when it serves plain HTTP on a non-loopback address.</p>
+
+          <h3 id="variables">Variables</h3>
+          <p>These runtime variables are replaced in URLs, headers, request bodies and parameters on every request:</p>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Variable</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td><code>${ACCESSTOKEN}</code></td><td>The current access token.</td></tr>
+                <tr><td><code>${REFRESHTOKEN}</code></td><td>The current refresh token.</td></tr>
+                <tr><td><code>${IP}</code></td><td>The caller's IP address (see <code>trusted_proxies</code>).</td></tr>
+                <tr><td><code>${FIXEDTOKEN}</code></td><td>The configured <code>relay.fixedtoken</code>.</td></tr>
+                <tr><td><code>${USER}</code>, <code>${PASSWORD}</code>, <code>${AUTHSTRING}</code></td><td>The <code>login.user</code>, <code>login.password</code> and <code>login.authstring</code> settings.</td></tr>
+                <tr><td><code>${DATA}</code></td><td>The configured <code>data</code> field.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>A <code>${NAME}</code> that is not one of these is left as it is. Secret placeholders with a colon, <code>${alias:name}</code> and <code>${env:NAME}</code>, are different: they are resolved once, at startup.</p>
+
+          <h3 id="secrets">Secrets managers</h3>
+          <p>Fetch credentials from AWS Secrets Manager, HashiCorp Vault or Azure Key Vault instead of writing them in the file. Define each manager under an alias:</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>"secrets_managers": {
+  "aws_prod": { "type": "aws_secrets_manager", "region": "eu-west-1" },
+  "vault_prod": {
+    "type": "hashicorp_vault",
+    "address": "https://vault.example.com",
+    "auth": { "type": "approle", "role_id": "relay", "secret_id_env": "VAULT_SECRET_ID" }
+  },
+  "azure_prod": { "type": "azure_key_vault", "vault_url": "https://mykeyvault.vault.azure.net/" }
+}</code></pre>
+          </div>
+          <p>Then refer to a secret as <code>${alias:secret_name}</code>, or <code>${alias:secret_name:json_key}</code> to take one key of a JSON secret:</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>"client_secret": "${aws_prod:myapp/credentials:client_secret}",
+"headers": { "Authorization": "Basic ${vault_prod:svc:user}:${vault_prod:svc:pass}" }</code></pre>
+          </div>
+          <p>Placeholders work in any string, including header and parameter maps, lists such as <code>allowed_hosts</code>, and <code>jwt_claims</code>. Each secret is fetched once however many placeholders use it, and the values are masked in logs. A JSON number, boolean or object is used as its JSON text.</p>
+          <div class="ref-table-wrap">
+            <table class="ref-table">
+              <thead><tr><th>Type</th><th>Settings</th></tr></thead>
+              <tbody>
+                <tr><td><code>aws_secrets_manager</code></td><td><code>region</code>; <code>profile</code> (optional). Uses the standard AWS credential chain, including IAM roles and IRSA.</td></tr>
+                <tr><td><code>hashicorp_vault</code></td><td><code>address</code> (default <code>VAULT_ADDR</code>); <code>namespace</code>; <code>mount</code> (default <code>secret</code>); <code>kv_version</code> 1 or 2 (default 2); <code>auth</code>: <code>approle</code> (<code>role_id</code>, <code>secret_id_env</code>), <code>token</code> (<code>token_env</code>, default <code>VAULT_TOKEN</code>) or <code>kubernetes</code> (<code>role</code>, <code>token_path</code>), each with an optional <code>mount</code>. Without <code>auth</code>, <code>VAULT_TOKEN</code> is used.</td></tr>
+                <tr><td><code>azure_key_vault</code></td><td><code>vault_url</code>; then <code>tenant_id</code>, <code>client_id</code> and <code>client_secret_env</code> for a service principal, <code>client_id</code> alone for a user-assigned managed identity, or none for <code>DefaultAzureCredential</code>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="env">Environment variables</h3>
+          <p><code>${env:NAME}</code> is replaced with the environment variable <code>NAME</code> when the relay starts. It needs no <code>secrets_managers</code> entry and works anywhere a secret placeholder does.</p>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>terminal</span></div>
+            <pre><code>$ export API_CLIENT_SECRET='s3cr3t'
+$ grep client_secret config.json
+    "client_secret": "${env:API_CLIENT_SECRET}"
+$ oauth2relay --config config.json</code></pre>
+          </div>
+          <ul>
+            <li><code>${env:NAME:json_key}</code> reads one key from a variable that holds a JSON object.</li>
+            <li>If the variable is not set, the relay refuses to start and names it. A variable set to an empty string resolves to an empty string.</li>
+            <li>Values are masked in logs like other secrets.</li>
+            <li>Placeholders work in string values only, not in numbers such as <code>port</code>.</li>
+            <li><code>env</code> is reserved and cannot be a secrets manager alias.</li>
+          </ul>
+          <p>Environment variables suit containers and systemd, where the platform injects them from its own secret store: a Kubernetes Secret, <code>EnvironmentFile=</code> or <code>docker run --env-file</code>. They are read once at startup; for credentials that rotate without restarts, use a secrets manager with <code>secrets_refresh_interval</code>.</p>
+
+          <h3 id="rotation">Rotating secrets</h3>
+          <p>Secrets are fetched at startup. With <code>secrets_refresh_interval</code> (seconds, at least 60) the relay re-resolves every placeholder on that schedule and switches to the new values for later requests and renewals; requests in progress finish with the values they started with. If a re-fetch fails, the current values stay in use and it is retried at the next interval. The configuration file is not re-read, and each re-fetch logs in to the secrets manager again, so choose minutes rather than seconds.</p>
+          <p>The current token is kept when credentials change; the new ones are used at the next login. To rotate a client secret: add the new secret at the identity provider, update it in the secrets manager, wait one interval plus one token lifetime, then revoke the old one. The <a href="operations.html#rotation">operations guide</a> covers the other credentials.</p>
+
+          <h3 id="example">Complete example</h3>
+          <div class="code-window">
+            <div class="code-window-bar"><i></i><i></i><i></i><span>config.json</span></div>
+            <pre><code>{
+  "port": 8443,
+  "host": "0.0.0.0",
+  "admin_port": 9090,
+  "log_format": "json",
+  "apiKey": "${env:RELAY_API_KEY}",
+  "tls": {
+    "cert_file": "/etc/oauth2relay/tls.crt",
+    "key_file": "/etc/oauth2relay/tls.key"
+  },
+  "server": { "shutdown_delay": 5 },
+  "secrets_managers": {
+    "vault": {
+      "type": "hashicorp_vault",
+      "address": "https://vault.example.com",
+      "auth": { "type": "kubernetes", "role": "oauth2relay" }
+    }
+  },
+  "secrets_refresh_interval": 900,
+  "login": {
+    "url": "https://auth.example.com/oauth/token",
+    "grant_type": "client_credentials",
+    "client_id": "orders-service",
+    "client_secret": "${vault:oauth2relay/orders:client_secret}"
+  },
+  "relay": {
+    "mode": "passthrough",
+    "url": "https://api.example.com/v1",
+    "method": "inherit",
+    "pushheaders": true,
+    "headers": { "Authorization": "Bearer ${ACCESSTOKEN}" }
+  }
+}</code></pre>
+          </div>
+
+          <!-- ============ More ============ -->
+          <h2 id="more">More</h2>
+
+          <h3 id="upgrading">Upgrade notes</h3>
+          <p>Read the notes for every version between yours and the new one, and run <code>oauth2relay --check-config</code> with the new binary against your configuration before switching. The archive's <code>UPGRADING.md</code> has the full notes.</p>
+          <h4>Upgrading to 2.2</h4>
+          <ul>
+            <li>New <code>scope</code>, <code>audience</code>, <code>resource</code> and <code>client_auth</code> login settings.</li>
+            <li><code>login.headers</code> are now sent with the <code>client_credentials</code>, <code>password</code> and <code>jwt</code> grants, which 2.1 ignored. Remove any you do not want sent to the identity provider.</li>
+          </ul>
+          <h4>Upgrading to 2.1</h4>
+          <ul>
+            <li>New <code>${env:NAME}</code> placeholders. A string containing <code>${env:...}</code>, which 2.0 passed through unchanged, is now replaced, and the relay does not start if the variable is unset.</li>
+            <li>A secrets manager with the alias <code>env</code> is rejected; rename it and its placeholders.</li>
+          </ul>
+          <h4>Upgrading to 2.0</h4>
+          <p>2.0 is the first production release, with breaking changes from 1.3:</p>
+          <ul>
+            <li><strong>Logs</strong> go to stdout and are structured (<code>key=value</code> or JSON), with one line per request.</li>
+            <li><strong>Configuration</strong> is checked strictly: unknown fields, unsupported grant types and invalid URLs stop the relay. Unknown command-line flags are errors.</li>
+            <li><strong><code>/healthz</code>, <code>/readyz</code> and <code>/metrics</code></strong> are answered by the relay; set <code>admin_port</code> if callers relied on relaying those paths.</li>
+            <li><strong>Identity provider outages</strong> return <code>503 token_unavailable</code> instead of <code>500</code>.</li>
+            <li><strong><code>parameter</code> mode</strong> blocks internal addresses; list them in <code>allowed_networks</code> if needed.</li>
+            <li><strong>Tokens</strong> are renewed in the background at 80% of their lifetime, and login retries back off exponentially from 5 seconds.</li>
+          </ul>
+
+          <h3 id="security">Security</h3>
+          <ol>
+            <li>Keep secrets out of the configuration file: use <code>${env:NAME}</code> or a secrets manager.</li>
+            <li>Serve HTTPS with <code>tls</code>, or put the relay behind a TLS-terminating proxy.</li>
+            <li>Set <code>apiKey</code> unless the network already limits who can reach the relay, and always in <code>parameter</code> mode.</li>
+            <li>Use <code>admin_port</code> on a private network for health checks and metrics.</li>
+            <li>Run with <code>log_level</code> <code>info</code> in production; <code>debug</code> logs request content.</li>
+            <li>Prefer the <code>client_credentials</code> or <code>jwt</code> grant to <code>password</code>.</li>
+            <li>In <code>parameter</code> mode keep <code>allowed_hosts</code> narrow and <code>allowed_networks</code> empty.</li>
+            <li>Rotate credentials regularly, and alert on failing token renewals.</li>
+          </ol>
+          <div class="note"><i class="bi bi-envelope"></i><p><strong>Reporting a vulnerability:</strong> email <a href="mailto:security@fijomi.com">security@fijomi.com</a> rather than opening a public issue. Include the version, the configuration needed to reproduce the problem with secrets removed, and the steps. Security fixes are released for the latest version.</p></div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="row g-4 g-lg-5 footer-main">
+        <div class="col-lg-4">
+          <a class="brand" href="index.html">
+            <img src="favicon.png" alt="" width="28" height="28">
+            <span>OAUTH2Relay</span>
+          </a>
+          <p class="footer-tagline">Open source OAuth 2.0 token relay.<br>Tokens in memory, credentials from your environment.</p>
+          <a class="footer-link-accent" href="index.html#contact-us">Let’s talk <i class="bi bi-arrow-up-right"></i></a>
+        </div>
+        <nav class="col-6 col-md-4 col-lg-2 offset-lg-2" aria-label="Footer product">
+          <h2>Product</h2>
+          <a href="index.html#what-is">Overview</a>
+          <a href="index.html#advantages">Advantages</a>
+          <a href="index.html#how-it-works">How it works</a>
+          <a href="index.html#download">Download</a>
+        </nav>
+        <nav class="col-6 col-md-4 col-lg-2" aria-label="Footer resources">
+          <h2>Resources</h2>
+          <a href="docs.html">Documentation</a>
+          <a href="docs.html#reference">Configuration reference</a>
+          <a href="operations.html">Operations guide</a>
+          <a href="docs.html#upgrading">Upgrade notes</a>
+        </nav>
+        <nav class="col-6 col-md-4 col-lg-2" aria-label="Footer company">
+          <h2>Company</h2>
+          <a href="https://fijomi.com" target="_blank" rel="noopener">Fijomi Systems <i class="bi bi-arrow-up-right"></i></a>
+          <a href="index.html#contact-us">Contact</a>
+          <a href="docs.html#security">Security</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2024–2026 Fijomi Systems SL. OAUTH2Relay is open source under the <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener">Apache License 2.0</a>.</span>
+        <span>Built by <a href="https://fijomi.com" target="_blank" rel="noopener">Fijomi Systems <i class="bi bi-arrow-up-right"></i></a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

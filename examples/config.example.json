@@ -1,0 +1,29 @@
+{
+  "host": "127.0.0.1",
+  "port": 8080,
+  "admin_port": 9090,
+  "apiKey": "${env:OAUTH2RELAY_API_KEY}",
+  "log_level": "info",
+  "log_format": "json",
+  "token_wait_timeout": 30,
+  "login": {
+    "url": "https://idp.example.com/oauth2/token",
+    "grant_type": "client_credentials",
+    "client_id": "${env:OAUTH2RELAY_CLIENT_ID}",
+    "client_secret": "${env:OAUTH2RELAY_CLIENT_SECRET}",
+    "scope": "api.read"
+  },
+  "relay": {
+    "mode": "passthrough",
+    "url": "https://api.example.com",
+    "method": "inherit",
+    "timeout": 60,
+    "pushheaders": true,
+    "headers": {
+      "Authorization": "Bearer ${ACCESSTOKEN}"
+    }
+  },
+  "server": {
+    "shutdown_delay": 5
+  }
+}

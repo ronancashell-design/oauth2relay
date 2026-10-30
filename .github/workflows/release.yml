@@ -1,0 +1,66 @@
+name: Release
+
+# Pushing a tag such as v2.0.0 builds the release archives and SHA256SUMS,
+# publishes them as a GitHub release, and pushes the image to
+# ghcr.io/<owner>/oauth2relay for linux/amd64 and linux/arm64.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Unit tests
+        run: go test -race ./...
+      - name: Dependency licences and NOTICE
+        run: make licenses
+      - name: Build the archives
+        run: make release
+
+      - name: Build and scan the image
+        run: |
+          make docker IMAGE=oauth2relay
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.67.2 image --severity HIGH,CRITICAL --ignore-unfixed \
+            --exit-code 1 "oauth2relay:$VERSION"
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push the image
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/oauth2relay"
+          tags="-t $image:$VERSION"
+          # Pre-releases such as 2.1.0-rc.1 do not move "latest".
+          case "$VERSION" in *-*) ;; *) tags="$tags -t $image:latest" ;; esac
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            --build-arg VERSION="$VERSION" $tags --push .
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=; case "$VERSION" in *-*) prerelease=--prerelease ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/*.tar.gz dist/*.zip dist/SHA256SUMS \
+            --verify-tag $prerelease --title "OAUTH2Relay $VERSION" \
+            --notes "See [UPGRADING.md](UPGRADING.md) before upgrading, and the History section of the README for every change. Verify downloads with \`sha256sum -c SHA256SUMS --ignore-missing\`."
