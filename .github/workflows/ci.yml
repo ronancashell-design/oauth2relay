@@ -27,7 +27,7 @@ jobs:
         with:
           go-version-file: go.mod
       - run: make vet
-      - uses: golangci/golangci-lint-action@v8
+      - uses: golangci/golangci-lint-action@v9
         with:
           version: v2.15.0
           # Build golangci-lint with this module's toolchain; a prebuilt
