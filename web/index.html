@@ -54,7 +54,7 @@
         "image": "https://oauth2relay.com/og-image.jpg",
         "applicationCategory": "SecurityApplication",
         "operatingSystem": "Linux, macOS, Windows",
-        "softwareVersion": "2.4.1",
+        "softwareVersion": "2.4.2",
         "license": "https://www.apache.org/licenses/LICENSE-2.0",
         "downloadUrl": "https://oauth2relay.com/#download",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
@@ -136,7 +136,7 @@
           <h1 class="display-title">Secure OAuth2 tokens,<br><em>never on disk.</em></h1>
           <p class="lead-muted">OAUTH2Relay gets the access token, keeps it in memory, renews it before it expires and adds it to every request your services make. Credentials come from your environment or your secrets manager, never from code.</p>
           <div class="d-flex flex-wrap gap-3 mt-4">
-            <a class="btn-pill btn-pill-primary" href="#download">Download v2.4.1 <i class="bi bi-download"></i></a>
+            <a class="btn-pill btn-pill-primary" href="#download">Download v2.4.2 <i class="bi bi-download"></i></a>
             <a class="btn-pill" href="docs.html">Read the docs <i class="bi bi-arrow-up-right"></i></a>
           </div>
           <p class="hero-meta"><i class="bi bi-check2"></i>Apache-2.0 <i class="bi bi-check2"></i>Linux, macOS, Windows <i class="bi bi-check2"></i>Single static binary</p>
@@ -469,28 +469,28 @@ $ curl http://127.0.0.1:8080/orders   # relayed to /v1/orders with the token
       <div class="row g-4 g-lg-5">
         <div class="col-lg-5" data-reveal>
           <p class="eyebrow">Download</p>
-          <h2 class="section-title">Version 2.4.1.<br><em>Free and open source.</em></h2>
+          <h2 class="section-title">Version 2.4.2.<br><em>Free and open source.</em></h2>
           <p class="lead-muted">Each archive holds the binary, the licence, the documentation and a hardened systemd unit. Verify the download against <code>SHA256SUMS</code> before installing it.</p>
           <p class="lead-muted"><a href="docs.html#install">Installation guide <i class="bi bi-arrow-up-right"></i></a> &nbsp; <a href="docs.html#upgrading">Upgrade notes <i class="bi bi-arrow-up-right"></i></a></p>
         </div>
         <div class="col-lg-7" data-reveal data-reveal-delay="120">
           <ul class="download-list">
-            <li><i class="bi bi-terminal"></i><span><strong>Linux</strong> x86-64</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_linux_amd64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
-            <li><i class="bi bi-terminal"></i><span><strong>Linux</strong> ARM64</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_linux_arm64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
-            <li><i class="bi bi-apple"></i><span><strong>macOS</strong> Apple silicon</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_darwin_arm64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
-            <li><i class="bi bi-apple"></i><span><strong>macOS</strong> Intel</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_darwin_amd64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
-            <li><i class="bi bi-windows"></i><span><strong>Windows</strong> x64</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_windows_amd64.zip">zip <i class="bi bi-download"></i></a></li>
-            <li><i class="bi bi-windows"></i><span><strong>Windows</strong> ARM64</span><a href="downloads/v2.4.1/oauth2relay_2.4.1_windows_arm64.zip">zip <i class="bi bi-download"></i></a></li>
-            <li><i class="bi bi-fingerprint"></i><span><strong>Checksums</strong></span><a href="downloads/v2.4.1/SHA256SUMS">SHA256SUMS <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-terminal"></i><span><strong>Linux</strong> x86-64</span><a href="downloads/v2.4.2/oauth2relay_2.4.2_linux_amd64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-terminal"></i><span><strong>Linux</strong> ARM64</span><a href="downloads/v2.4.2/oauth2relay_2.4.2_linux_arm64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-apple"></i><span><strong>macOS</strong> Apple silicon</span><a href="downloads/v2.4.2/oauth2relay_2.4.2_darwin_arm64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-apple"></i><span><strong>macOS</strong> Intel</span><a href="downloads/v2.4.2/oauth2relay_2.4.2_darwin_amd64.tar.gz">tar.gz <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-windows"></i><span><strong>Windows</strong> x64</span><a href="downloads/v2.4.2/oauth2relay_2.4.2_windows_amd64.zip">zip <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-windows"></i><span><strong>Windows</strong> ARM64</span><a href="downloads/v2.4.2/oauth2relay_2.4.2_windows_arm64.zip">zip <i class="bi bi-download"></i></a></li>
+            <li><i class="bi bi-fingerprint"></i><span><strong>Checksums</strong></span><a href="downloads/v2.4.2/SHA256SUMS">SHA256SUMS <i class="bi bi-download"></i></a></li>
           </ul>
           <div class="code-window mt-4">
             <div class="code-window-bar"><i></i><i></i><i></i><span>install on Linux</span></div>
             <pre><code>$ sha256sum -c SHA256SUMS --ignore-missing
-oauth2relay_2.4.1_linux_amd64.tar.gz: OK
-$ tar xzf oauth2relay_2.4.1_linux_amd64.tar.gz
-$ sudo install -m 0755 oauth2relay_2.4.1_linux_amd64/oauth2relay /usr/local/bin/
+oauth2relay_2.4.2_linux_amd64.tar.gz: OK
+$ tar xzf oauth2relay_2.4.2_linux_amd64.tar.gz
+$ sudo install -m 0755 oauth2relay_2.4.2_linux_amd64/oauth2relay /usr/local/bin/
 $ oauth2relay --version
-OAUTH2Relay version 2.4.1</code></pre>
+OAUTH2Relay version 2.4.2</code></pre>
           </div>
         </div>
       </div>

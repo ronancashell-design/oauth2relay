@@ -136,7 +136,7 @@ Secret placeholders were not resolved; they are checked when the relay starts.
 
 $ export API_CLIENT_SECRET='s3cr3t'
 $ oauth2relay --config config.json
-level=INFO msg="Starting OAUTH2Relay" version=2.4.1 log_level=info
+level=INFO msg="Starting OAUTH2Relay" version=2.4.2 log_level=info
 level=INFO msg="Initial access token obtained"
 level=INFO msg="Relay server listening" addr=127.0.0.1:8080 relay_mode=passthrough tls=false
 
@@ -151,18 +151,18 @@ $ curl http://127.0.0.1:8080/orders?status=open
           <h4>Linux</h4>
           <div class="code-window">
             <div class="code-window-bar"><i></i><i></i><i></i><span>terminal</span></div>
-            <pre><code>$ curl -LO https://oauth2relay.com/downloads/v2.4.1/oauth2relay_2.4.1_linux_amd64.tar.gz
-$ curl -LO https://oauth2relay.com/downloads/v2.4.1/SHA256SUMS
+            <pre><code>$ curl -LO https://oauth2relay.com/downloads/v2.4.2/oauth2relay_2.4.2_linux_amd64.tar.gz
+$ curl -LO https://oauth2relay.com/downloads/v2.4.2/SHA256SUMS
 $ sha256sum -c SHA256SUMS --ignore-missing
-oauth2relay_2.4.1_linux_amd64.tar.gz: OK
-$ tar xzf oauth2relay_2.4.1_linux_amd64.tar.gz
-$ sudo install -m 0755 oauth2relay_2.4.1_linux_amd64/oauth2relay /usr/local/bin/oauth2relay</code></pre>
+oauth2relay_2.4.2_linux_amd64.tar.gz: OK
+$ tar xzf oauth2relay_2.4.2_linux_amd64.tar.gz
+$ sudo install -m 0755 oauth2relay_2.4.2_linux_amd64/oauth2relay /usr/local/bin/oauth2relay</code></pre>
           </div>
           <p>To run it as a service, use the hardened systemd unit in the archive; the <a href="operations.html#systemd">operations guide</a> has the installation steps.</p>
           <h4>macOS</h4>
           <p>Use <code>shasum -a 256 -c SHA256SUMS --ignore-missing</code> to verify the download. The binary is not signed with an Apple Developer ID, so macOS blocks it the first time. After checking the checksum, remove the quarantine flag: <code>xattr -d com.apple.quarantine oauth2relay</code>.</p>
           <h4>Windows</h4>
-          <p>Extract the zip archive and run <code>oauth2relay.exe --config config.json</code> from a terminal. Check the download with <code>Get-FileHash oauth2relay_2.4.1_windows_amd64.zip -Algorithm SHA256</code> and compare the result with <code>SHA256SUMS</code>.</p>
+          <p>Extract the zip archive and run <code>oauth2relay.exe --config config.json</code> from a terminal. Check the download with <code>Get-FileHash oauth2relay_2.4.2_windows_amd64.zip -Algorithm SHA256</code> and compare the result with <code>SHA256SUMS</code>.</p>
           <h4>Containers</h4>
           <p>Copy the Linux binary into a minimal image. The relay needs only CA certificates, which the distroless base provides, and runs as a non-root user:</p>
           <div class="code-window">
