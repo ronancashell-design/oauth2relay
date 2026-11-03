@@ -28,10 +28,11 @@ Apache License 2.0
   github.com/aws/aws-sdk-go-v2/feature/ec2/imds
   github.com/aws/aws-sdk-go-v2/internal/configsources
   github.com/aws/aws-sdk-go-v2/internal/endpoints/v2
-  github.com/aws/aws-sdk-go-v2/internal/ini
+  github.com/aws/aws-sdk-go-v2/internal/v4a
   github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding
   github.com/aws/aws-sdk-go-v2/service/internal/presigned-url
   github.com/aws/aws-sdk-go-v2/service/secretsmanager
+  github.com/aws/aws-sdk-go-v2/service/signin
   github.com/aws/aws-sdk-go-v2/service/sso
   github.com/aws/aws-sdk-go-v2/service/ssooidc
   github.com/aws/aws-sdk-go-v2/service/sts
@@ -50,12 +51,14 @@ BSD 3-Clause License
   The Go standard library
   github.com/aws/aws-sdk-go-v2/internal/sync/singleflight
   github.com/aws/smithy-go/internal/sync/singleflight
+  github.com/aws/smithy-go/transport/http/protocol/internal/json/internal/stdlib
   github.com/go-jose/go-jose/v4/json
   github.com/google/uuid
   github.com/munnerz/goautoneg
   github.com/prometheus/client_golang/internal/github.com/golang/gddo/httputil
   golang.org/x/crypto/pkcs12
   golang.org/x/net
+  golang.org/x/sync/singleflight
   golang.org/x/sys/unix
   golang.org/x/sys/windows
   golang.org/x/text
