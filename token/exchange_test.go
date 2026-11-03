@@ -47,7 +47,7 @@ func TestExchange(t *testing.T) {
 
 	res, err := e.Exchange(context.Background(), &ExchangeRequest{
 		URL:          srv.URL,
-		ClientID:     "mcp-server",
+		ClientID:     "api-gateway",
 		ClientSecret: "s3cret&=",
 		SubjectToken: "user-jwt-abc",
 		Audience:     []string{"https://crm.example/api", "https://billing.example"},
@@ -65,7 +65,7 @@ func TestExchange(t *testing.T) {
 		"subject_token":      "user-jwt-abc",
 		"subject_token_type": TokenTypeAccessToken,
 		"scope":              "crm:read customer:profile",
-		"client_id":          "mcp-server",
+		"client_id":          "api-gateway",
 		"client_secret":      "s3cret&=",
 	} {
 		if got := f.Get(key); got != want {
