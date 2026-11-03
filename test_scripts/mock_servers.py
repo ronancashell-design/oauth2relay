@@ -90,7 +90,7 @@ class MockOAuth2Server:
                 
                 try:
                     # Verify JWT
-                    payload = jwt.decode(assertion, 'test_jwt_secret', algorithms=['HS256'],
+                    payload = jwt.decode(assertion, 'test_jwt_secret_with_at_least_32_bytes', algorithms=['HS256'],
                                          audience='test_audience')
                     return self._generate_token_response()
                 except jwt.InvalidTokenError:

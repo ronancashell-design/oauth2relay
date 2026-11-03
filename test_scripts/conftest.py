@@ -78,7 +78,7 @@ def jwt_grant_config():
     """Configuration for JWT grant testing."""
     config = create_basic_config()
     config["login"]["grant_type"] = "jwt"
-    config["login"]["jwt_key"] = "test_jwt_secret"
+    config["login"]["jwt_key"] = "test_jwt_secret_with_at_least_32_bytes"
     config["login"]["jwt_issuer"] = "test_issuer"
     config["login"]["jwt_audience"] = "test_audience"
     return config
