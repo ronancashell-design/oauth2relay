@@ -804,6 +804,9 @@ A commercial edition with additional features for organisations (multiple connec
 
 ## History
 
+**2026-11-03** (v2.4.3)
+- Updated dependencies: the Azure SDK (`azcore` 1.23.3, `azidentity` 1.15.0, `azsecrets` 1.5.1), the AWS SDK (`config` 1.33.13, `secretsmanager` 1.50.8) and the HashiCorp Vault client (`api` 1.23.0, `approle` 0.12.0), used by the secrets managers. No configuration changes.
+
 **2026-11-03** (v2.4.2)
 - Security: updated `github.com/go-jose/go-jose/v4` to 4.1.6 (CVE-2026-116587, denial of service through crafted RSA parameters in JWKs) and `golang.org/x/net` to 0.62.0 (GO-2026-6860, GO-2026-6866). `govulncheck` shows the relay does not call the affected code, but image scanners report the old versions. No configuration changes.
 
