@@ -34,3 +34,6 @@ test_scripts/.venv/
 
 # Local Claude Code settings
 .claude/settings.local.json
+
+# Local environment (tokens, credentials)
+.env
