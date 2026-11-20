@@ -7,7 +7,7 @@
 # The build stage runs on the build machine's platform and cross-compiles, so
 # multi-platform images (docker buildx --platform linux/amd64,linux/arm64)
 # need no emulation.
-FROM --platform=$BUILDPLATFORM golang:1.27.3-trixie AS build
+FROM --platform=$BUILDPLATFORM golang:1.27.4-trixie AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
